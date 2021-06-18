@@ -18,12 +18,12 @@ from sklearn.metrics import ConfusionMatrixDisplay
 from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import ConcatDataset, DataLoader, Dataset, random_split
-from torchmetrics import Accuracy, ConfusionMatrix
+from torchmetrics import Accuracy, ConfusionMatrix, Precision, Recall, F1
 from torchmetrics.functional import accuracy, confusion_matrix, f1, precision
 from torchvision import transforms
-from torchvision.models import resnet18, squeezenet1_1
+from torchvision.models import resnet18, squeezenet1_1, resnet50, resnet152
 
-
+from .dataset import ColorDataset
 
 class ColorModel(pl.LightningModule):
 
@@ -37,19 +37,35 @@ class ColorModel(pl.LightningModule):
         self.model = self._get_model(model_arch, True, num_colors)
         
         # Metrics
+        avg_method = 'weighted'
+        self.train_acc = Accuracy(num_classes=num_colors, average=avg_method)
+
         self.val_confusion = ConfusionMatrix(num_classes=num_colors, normalize='true', compute_on_step=False)
+        self.val_acc = Accuracy(num_classes=num_colors, average=avg_method)
+        self.val_prec = Precision(num_classes=num_colors, average=avg_method)
+        self.val_rec = Recall(num_classes=num_colors, average=avg_method)
+        self.val_f1 = F1(num_classes=num_colors, average=avg_method)
+
         self.test_confusion = ConfusionMatrix(num_classes=num_colors, normalize='true', compute_on_step=False)
-
-        self.train_acc = Accuracy()
-        self.val_acc = Accuracy()
-        self.test_acc = Accuracy(compute_on_step=False)
-
+        self.test_acc = Accuracy(num_classes=num_colors, average=avg_method)
 
         
     def _get_model(self, model_arch:str='resnet18', pretrained:bool = True, num_classes:int = 10):
         model = None
         if model_arch == 'resnet18':
           model = resnet18(pretrained=pretrained)
+          # turn off backprop update for all the weights in the model
+          for param in model.parameters():
+              param.requires_grad = False
+          model.fc = nn.Linear(in_features = model.fc.in_features, out_features=num_classes)
+        elif model_arch == 'resnet50':
+          model = resnet50(pretrained=pretrained)
+          # turn off backprop update for all the weights in the model
+          for param in model.parameters():
+              param.requires_grad = False
+          model.fc = nn.Linear(in_features = model.fc.in_features, out_features=num_classes)
+        elif model_arch == 'resnet152':
+          model = resnet152(pretrained=pretrained)
           # turn off backprop update for all the weights in the model
           for param in model.parameters():
               param.requires_grad = False
@@ -66,7 +82,7 @@ class ColorModel(pl.LightningModule):
           # because in forward pass, there is a view function call which depends on the final output class size.
           model.num_classes = num_classes
         else:
-          options = ','.join(['resnet18', 'squeezenet'])
+          options = ','.join(['resnet18', 'resnet50', 'resnet152', 'squeezenet'])
           raise ValueError(f'Unsupported model_arch - {model_arch}, Supported values are {options}') 
         return model
 
@@ -81,7 +97,8 @@ class ColorModel(pl.LightningModule):
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
         x, *_ = batch
         y_hat = self(x)
-        return torch.argmax(y_hat, dim=1)
+        labels_hat = torch.argmax(y_hat, dim=1)
+        return labels_hat
 
     def training_step(self, batch, batch_idx):
         x,_, y = batch
@@ -105,12 +122,14 @@ class ColorModel(pl.LightningModule):
         # calculate metrics
         preds = F.softmax(y_hat, dim=1)
         self.val_acc(preds, y)
+        self.val_prec(preds, y)
+        self.val_rec(preds, y)
+        self.val_f1(preds, y)
         self.val_confusion(preds, y)
         # log stats
         self.log_dict({'val_loss': loss, 'val_acc': self.val_acc}, prog_bar=True)
 
     def validation_epoch_end(self, validation_step_outputs):
-        self.log('current_lr', self.optimizer.param_groups[0]['lr'])
         self._log_confusion(self.val_confusion)
 
     def test_step(self, batch, batch_idx):
