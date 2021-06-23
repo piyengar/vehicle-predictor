@@ -1,30 +1,20 @@
 import os
-import sys
-import xml.etree.ElementTree as et
-from typing import Any, List, Optional
+from typing import List, Optional
 
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 import pytorch_lightning as pl
-import torch
-from IPython.display import Image as ipImage
-from ipywidgets import interact
-# from pl_bolts.datasets import DummyDataset
-from PIL import Image
-from pytorch_lightning.callbacks import (BasePredictionWriter,
-                                         LearningRateMonitor)
-from sklearn.metrics import ConfusionMatrixDisplay
-from torch import nn
-from torch.nn import functional as F
-from torch.utils.data import ConcatDataset, DataLoader, Dataset, random_split
-from torchmetrics import Accuracy, ConfusionMatrix
-from torchmetrics.functional import accuracy, confusion_matrix, f1, precision
-from torchvision import transforms
-from torchvision.models import resnet18, squeezenet1_1
 
-from color.dataset import (BoxCars116kDataset, Cars196Dataset, CompCarsDataset,
-                           VehicleIDDataset, VeriDataset, VRICDataset)
+# from pl_bolts.datasets import DummyDataset
+from torch.utils.data import ConcatDataset, DataLoader, random_split
+from torchvision import transforms
+
+from color.dataset import (
+    BoxCars116kDataset,
+    Cars196Dataset,
+    CompCarsDataset,
+    VehicleIDDataset,
+    VeriDataset,
+    VRICDataset,
+)
 
 
 class ColorDataModule(pl.LightningDataModule):
@@ -36,7 +26,6 @@ class ColorDataModule(pl.LightningDataModule):
         img_size: int = 224,
         with_predictions=False,
         prediction_file=None,
-        prediction_root=None,
         allowed_color_list: List[str] = None,
     ):
         super().__init__()
@@ -52,17 +41,9 @@ class ColorDataModule(pl.LightningDataModule):
         )
         # else:
         #     self.transform = None
-        if prediction_root is None:
-            prediction_root = os.getenv('PREDICTION_ROOT')
         self.batch_size = batch_size
         self.with_predictions = with_predictions
-        self.prediction_file = None
-        if with_predictions:
-            self.prediction_file = (
-                prediction_file
-                if prediction_file != None
-                else os.path.join(prediction_root, f"{dataset_name}.txt")
-            )
+        self.prediction_file = prediction_file
 
         self.train_dataset = None
         self.val_dataset = None
