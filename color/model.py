@@ -21,10 +21,12 @@ from torch.utils.data import ConcatDataset, DataLoader, Dataset, random_split
 from torchmetrics import Accuracy, ConfusionMatrix, Precision, Recall, F1
 from torchmetrics.functional import accuracy, confusion_matrix, f1, precision
 from torchvision import transforms
-from torchvision.models import resnet18, squeezenet1_1, resnet50, resnet152
+from torchvision.models import resnet18, squeezenet1_1, resnet50, resnet152, mobilenet_v3_small
+from efficientnet_pytorch import EfficientNet
 
 from .dataset import ColorDataset
 
+valid_archs = ['resnet18', 'resnet50', 'resnet152', 'squeezenet', 'mobilenetv3-small', 'efficientnet-b0']
 class ColorModel(pl.LightningModule):
 
     def __init__(self, num_colors=11, model_arch:str='resnet18', learning_rate=1e-3, lr_step=1, lr_step_factor=0.9):
@@ -50,39 +52,67 @@ class ColorModel(pl.LightningModule):
         self.test_acc = Accuracy(num_classes=num_colors, average=avg_method)
 
         
-    def _get_model(self, model_arch:str='resnet18', pretrained:bool = True, num_classes:int = 10):
+    def _get_model(self, model_arch:str='resnet18', pretrained:bool = True, num_classes:int = 10, only_fine_tune=True):
         model = None
         if model_arch == 'resnet18':
-          model = resnet18(pretrained=pretrained)
-          # turn off backprop update for all the weights in the model
-          for param in model.parameters():
-              param.requires_grad = False
-          model.fc = nn.Linear(in_features = model.fc.in_features, out_features=num_classes)
+            model = resnet18(pretrained=pretrained)
+            if only_fine_tune:
+                # turn off backprop update for all the weights in the model
+                for param in model.parameters():
+                    param.requires_grad = False
+            model.fc = nn.Linear(in_features = model.fc.in_features, out_features=num_classes)
         elif model_arch == 'resnet50':
-          model = resnet50(pretrained=pretrained)
-          # turn off backprop update for all the weights in the model
-          for param in model.parameters():
-              param.requires_grad = False
-          model.fc = nn.Linear(in_features = model.fc.in_features, out_features=num_classes)
+            model = resnet50(pretrained=pretrained)
+            if only_fine_tune:
+                # turn off backprop update for all the weights in the model
+                for param in model.parameters():
+                    param.requires_grad = False
+            model.fc = nn.Linear(in_features = model.fc.in_features, out_features=num_classes)
         elif model_arch == 'resnet152':
-          model = resnet152(pretrained=pretrained)
-          # turn off backprop update for all the weights in the model
-          for param in model.parameters():
-              param.requires_grad = False
-          model.fc = nn.Linear(in_features = model.fc.in_features, out_features=num_classes)
-        elif model_arch == 'squeezenet':
-          model = squeezenet1_1(pretrained=pretrained)
-          # # turn off backprop update for all the weights in the model
-          # for param in model.parameters():
-          #     param.requires_grad = False
-          # change the last Conv2D layer in case of squeezenet. there is no fc layer in the end.
-          num_ftrs = 512
-          model.classifier._modules["1"] = nn.Conv2d(512, num_classes, kernel_size=(1, 1))
+            model = resnet152(pretrained=pretrained)
+            if only_fine_tune:
+                # turn off backprop update for all the weights in the model
+                for param in model.parameters():
+                    param.requires_grad = False
+            model.fc = nn.Linear(in_features = model.fc.in_features, out_features=num_classes)
+        elif model_arch == 'mobilenetv3-small':
+            model = mobilenet_v3_small(pretrained=pretrained)
+            if only_fine_tune:
+                # turn off backprop update for all the weights in the model
+                for param in model.parameters():
+                    param.requires_grad = False
+            # the final fc layer is within the classifier param
+            fc = model.classifier._modules['3']
+            model.classifier._modules['3'] = nn.Linear(fc.in_features, num_classes)
+        elif model_arch == 'efficientnet-b0':
+            if pretrained:
+                model = EfficientNet.from_pretrained('efficientnet-b0', num_classes=num_classes)
+            else:
+                model = EfficientNet.from_name('efficientnet-b0', num_classes=num_classes)
 
-          # because in forward pass, there is a view function call which depends on the final output class size.
-          model.num_classes = num_classes
+            if only_fine_tune:
+                # turn off backprop update for all the weights in the model
+                for param in model.parameters():
+                    param.requires_grad = False
+            # enable grad for fc layer regardless
+            for param in model._fc.parameters():
+                param.requires_grad = True
+
+        elif model_arch == 'squeezenet':
+            model = squeezenet1_1(pretrained=pretrained)
+            # Dont think we can fine tune, the final layer only has one parameter
+            # if only_fine_tune:
+            #     # turn off backprop update for all the weights in the model
+            #     for param in model.parameters():
+            #         param.requires_grad = False
+            # change the last Conv2D layer in case of squeezenet. there is no fc layer in the end.
+            num_ftrs = 512
+            model.classifier._modules["1"] = nn.Conv2d(512, num_classes, kernel_size=(1, 1))
+
+            # because in forward pass, there is a view function call which depends on the final output class size.
+            model.num_classes = num_classes
         else:
-          options = ','.join(['resnet18', 'resnet50', 'resnet152', 'squeezenet'])
+          options = ','.join(valid_archs)
           raise ValueError(f'Unsupported model_arch - {model_arch}, Supported values are {options}') 
         return model
 
@@ -97,8 +127,7 @@ class ColorModel(pl.LightningModule):
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
         x, *_ = batch
         y_hat = self(x)
-        labels_hat = torch.argmax(y_hat, dim=1)
-        return labels_hat
+        return torch.argmax(y_hat, dim=1)
 
     def training_step(self, batch, batch_idx):
         x,_, y = batch
