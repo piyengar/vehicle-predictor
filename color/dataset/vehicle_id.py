@@ -45,7 +45,7 @@ class VehicleIDDataset(ColorDataset):
             name_file = 'train_test_split/train_list.txt'
             prediction_file = 'attribute/color_attr.txt'
         elif stage == self.STAGE_TEST:
-            name_file = 'train_test_split/test_list_13164.txt'
+            name_file = 'train_test_split/train_list.txt'
             prediction_file = 'attribute/color_attr.txt'
         else: # predict
             name_file = 'train_test_split/train_list.txt'
