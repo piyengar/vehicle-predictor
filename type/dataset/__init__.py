@@ -1,4 +1,4 @@
-from .type import TypeDataset
+from .type import TypeDataset, Type
 from .vehicle_id import VehicleIDDataset
 from .comp_cars import CompCarsDataset
 from .veri import VeriDataset
