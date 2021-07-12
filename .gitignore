@@ -131,3 +131,4 @@ dmypy.json
 /dataset/
 checkpoints/color/
 predictions/color/
+/test.py
