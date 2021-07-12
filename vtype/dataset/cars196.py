@@ -2,13 +2,13 @@ import os
 from typing import List
 import xml.etree.ElementTree as et
 
-from . import ColorDataset
+from . import TypeDataset
 
 
 from scipy.io import loadmat
 
 
-class Cars196Dataset(ColorDataset):
+class Cars196Dataset(TypeDataset):
     dataset_name = "Cars196"
 
     def __init__(

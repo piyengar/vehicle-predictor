@@ -2,10 +2,10 @@ import os
 from typing import List
 import xml.etree.ElementTree as et
 
-from . import ColorDataset
+from . import TypeDataset
 
 
-class VRICDataset(ColorDataset):
+class VRICDataset(TypeDataset):
     dataset_name = "VRIC"
 
     def __init__(

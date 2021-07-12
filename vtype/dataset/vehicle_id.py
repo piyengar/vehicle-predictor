@@ -1,10 +1,10 @@
 import os
 from typing import List
 
-from . import ColorDataset
+from . import TypeDataset
 
 
-class VehicleIDDataset(ColorDataset):
+class VehicleIDDataset(TypeDataset):
     dataset_name='VehicleID'
     
     # this color list is only for reference, 

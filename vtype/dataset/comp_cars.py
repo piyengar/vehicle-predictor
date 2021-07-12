@@ -3,11 +3,11 @@ from typing import List
 
 from scipy.io import loadmat
 
-from . import ColorDataset
+from . import TypeDataset
 
 
 # CompCars
-class CompCarsDataset(ColorDataset):
+class CompCarsDataset(TypeDataset):
     dataset_name = "CompCars"
 
     # this color list is only for reference,

@@ -2,10 +2,10 @@ import os
 from typing import List
 import xml.etree.ElementTree as et 
 
-from . import ColorDataset
+from . import TypeDataset
 
 
-class VeriDataset(ColorDataset):
+class VeriDataset(TypeDataset):
     dataset_name='Veri'
     # this color list is only for reference, 
     # convention is to convert all colors to common color scheme
