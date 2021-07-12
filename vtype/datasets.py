@@ -1,6 +1,6 @@
 from enum import Enum
 
-class Datasets(Enum):
+class TypeDatasets(Enum):
     VRIC= "VRIC"
     CARS196 = "Cars196"
     VEHICLE_ID ="VehicleID"
