@@ -64,16 +64,16 @@ class TypeDataset(Dataset):
         """
         return dataset_typ
 
-    def get_type_counts(self):
+    def get_type_counts(self, allowed_type_list= None):
         if self.types != None:
-            type_list = (
-                self.allowed_type_list
-                if self.allowed_type_list != None
-                else self.type_master
+            get_type = lambda i : (
+                allowed_type_list[i]
+                if allowed_type_list != None
+                else Type(i).name
             )
             c, counts = np.unique(np.array(self.types), return_counts=True)
             return [
-                (typ, type_list[typ], count) for typ, count in zip(c, counts)
+                (typ, get_type(typ), count) for typ, count in zip(c, counts)
             ]
 
     def filter_by_types(self, type_list: List[Type] = None):
