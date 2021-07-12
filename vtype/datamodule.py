@@ -58,19 +58,22 @@ class TypeDataModule(pl.LightningDataModule):
             return VRICDataset(
                 os.path.join(self.data_dir, "VRIC"),
                 data_transform=self.transform,
-                with_predictions=self.with_predictions,
+                stage=stage,
+                prediction_file=self.prediction_file,
             )
         elif dataset_name == "Cars196":
             return Cars196Dataset(
                 os.path.join(self.data_dir, "Cars196"),
                 data_transform=self.transform,
-                with_predictions=self.with_predictions,
+                stage=stage,
+                prediction_file=self.prediction_file,
             )
         elif dataset_name == "BoxCars116k":
             return BoxCars116kDataset(
                 os.path.join(self.data_dir, "BoxCars116k"),
                 data_transform=self.transform,
-                with_predictions=self.with_predictions,
+                stage=stage,
+                prediction_file=self.prediction_file,
             )
         elif dataset_name == "VehicleID":
             return VehicleIDDataset(

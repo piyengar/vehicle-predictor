@@ -52,7 +52,7 @@ class BoxCars116kDataset(TypeDataset):
         self.data_dir = data_dir
         self.data_transform = data_transform
         dataset_file = "dataset.pkl"
-        split_file = "classification_splits.json"
+        split_file = "classification_splits.pkl"
         self.img_dir="images"
         self.paths = []
         self.types: List[int] = []
@@ -61,7 +61,7 @@ class BoxCars116kDataset(TypeDataset):
         with open(os.path.join(data_dir, dataset_file), "rb") as f:
             self.dataset = pickle.load(f, encoding=encoding, fix_imports=True)
         with open(os.path.join(data_dir, split_file), "rb") as f:
-            self.split = json.load(f)['body']
+            self.split = pickle.load(f)['body']
             if self.stage in [self.STAGE_TEST, self.STAGE_PREDICT]:
                 self.split = self.split['test']
             elif self.stage == self.STAGE_TRAIN:
