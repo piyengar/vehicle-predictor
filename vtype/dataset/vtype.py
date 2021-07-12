@@ -13,11 +13,10 @@ class Type(IntEnum):
     SUV = 3
     CONVERTIBLE = 4
     PICKUP = 5
-    VAN = 6
+    MINIVAN = 6
     WAGON = 7
-    MINIVAN = 8
-    BUS = 9
-    TRUCK = 10
+    BUS = 8
+    TRUCK = 9
     
     @staticmethod
     def list():

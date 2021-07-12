@@ -53,7 +53,6 @@ class BoxCars116kDataset(TypeDataset):
         self.data_transform = data_transform
         dataset_file = "dataset.pkl"
         split_file = "classification_splits.json"
-        model_type_file = "box_cars_model_type.txt"
         self.img_dir="images"
         self.paths = []
         self.types: List[int] = []
@@ -63,7 +62,7 @@ class BoxCars116kDataset(TypeDataset):
             self.dataset = pickle.load(f, encoding=encoding, fix_imports=True)
         with open(os.path.join(data_dir, split_file), "rb") as f:
             self.split = json.load(f)['body']
-            if self.stage == self.STAGE_TEST:
+            if self.stage in [self.STAGE_TEST, self.STAGE_PREDICT]:
                 self.split = self.split['test']
             elif self.stage == self.STAGE_TRAIN:
                 self.split = self.split['train']
@@ -71,14 +70,15 @@ class BoxCars116kDataset(TypeDataset):
         #     for line in f:
         #         name, typ = line.split(',')
         #         name_type_map[name] = typ
-        
+
         for entry in self.split:
             sample_id, instance_id = entry
             sample = self.dataset['samples'][sample_id]
             self.paths.append(sample['instances'][instance_id]['path'])
-            dataset_type = sample['annotation'].split(' ')[-2]
-            self.types.append(self.to_common_type(dataset_type).value)
-        
+            if self.stage in [self.STAGE_TEST, self.STAGE_TRAIN]:
+                dataset_type = sample['annotation'].split(' ')[-2]
+                self.types.append(self.to_common_type(dataset_type).value)
+
         self.names, self.types = self.filter_by_types(allowed_type_list)
         if allowed_type_list != None:
             self._remap_indexes(allowed_type_list)
