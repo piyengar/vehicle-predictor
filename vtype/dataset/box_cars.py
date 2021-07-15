@@ -1,5 +1,5 @@
 import os
-from typing import Any, List
+from typing import Any, List, Union
 import xml.etree.ElementTree as et
 
 from . import TypeDataset, Type
@@ -60,7 +60,7 @@ class BoxCars116kDataset(TypeDataset):
         dataset_file = "dataset.pkl"
         split_file = "classification_splits.pkl"
         self.img_dir="images"
-        self.paths = []
+        self.names = []
         self.types: List[int] = []
         self.allowed_type_list = allowed_type_list
         # name_type_map = {}
@@ -82,7 +82,7 @@ class BoxCars116kDataset(TypeDataset):
         for entry in self.split:
             sample_id, type_id = entry
             sample = self.dataset['samples'][sample_id]
-            self.paths.extend([inst['path'] for inst in sample['instances']])
+            self.names.extend([inst['path'] for inst in sample['instances']])
             if self.stage in [self.STAGE_TEST, self.STAGE_TRAIN]:
                 dataset_type = self.to_common_type(type_id).value
                 self.types.extend([dataset_type] * len(sample['instances']))
@@ -98,7 +98,7 @@ class BoxCars116kDataset(TypeDataset):
             super()._load_predictions()
 
     @staticmethod
-    def to_common_type(dataset_typ: str) -> Type:
+    def to_common_type(dataset_typ: Union[str,int]) -> Type:
         """Convert dataset specific type code to common type defined in the Type enum.
         Return the same code by default
 
