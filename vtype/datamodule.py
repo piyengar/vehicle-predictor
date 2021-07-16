@@ -97,7 +97,7 @@ class TypeDataModule(pl.LightningDataModule):
                 data_transform=self.transform,
                 stage=stage,
                 prediction_file=self.prediction_file,
-                allowed_color_list=self.allowed_color_list,
+                allowed_type_list=self.allowed_color_list,
             )
         elif dataset_name == "Combined":
             # import types

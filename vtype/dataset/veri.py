@@ -2,37 +2,36 @@ import os
 from typing import List
 import xml.etree.ElementTree as et 
 
-from . import TypeDataset
+from . import TypeDataset, Type
 
 
 class VeriDataset(TypeDataset):
     dataset_name='Veri'
-    # this color list is only for reference, 
-    # convention is to convert all colors to common color scheme
-    # color_master = [
-    #     'yellow',       #0
-    #     'orange',       #1
-    #     'green',        #2
-    #     'gray',         #3
-    #     'red',          #4
-    #     'blue',         #5
-    #     'white',        #6
-    #     'golden',       #7
-    #     'brown',        #8
-    #     'black',        #9
-    # ]
+
+    # dataset types
+    _dataset_type_mapping = [
+        Type.SEDAN,         # sedan
+        Type.SUV,           # suv
+        Type.HATCHBACK,     # van
+        Type.HATCHBACK,         # hatchback
+        Type.SUV,       # mpv
+        Type.PICKUP,           # pickup
+        Type.BUS,           # bus
+        Type.TRUCK,           # truck
+        Type.WAGON,           # estate
+    ]
 
     @staticmethod
-    def to_common_color(dataset_color):
+    def to_common_type(dataset_type):
         '''
         Convert dataset specific color code to common color code.
         Return the same code by default
         '''
-        return dataset_color
+        return VeriDataset._dataset_type_mapping[dataset_type]
 
     def __init__(self, data_dir, data_transform = None, 
                  stage:str = None, prediction_file=None, 
-                 allowed_color_list: List[str] = None
+                 allowed_type_list: List[Type] = None
                 ):
         if stage == self.STAGE_TRAIN:
             name_file = 'name_train.txt'
@@ -43,13 +42,15 @@ class VeriDataset(TypeDataset):
             prediction_file = 'test_label.xml'
             self.img_dir = 'image_test'
         else: # predict
-            name_file = 'name_train.txt'
-            self.img_dir = 'image_train'
+            name_file = 'name_test.txt'
+            self.img_dir = 'image_test'
 
-        super().__init__(data_dir, stage=stage, prediction_file=prediction_file)
-
-        self.data_transform = data_transform
-        self.allowed_color_list = allowed_color_list
+        super().__init__(data_dir, 
+                        stage=stage, 
+                        prediction_file=prediction_file,
+                        data_transform = data_transform,
+                        allowed_type_list = allowed_type_list,
+        )
         
         self.names = []
 
@@ -57,19 +58,19 @@ class VeriDataset(TypeDataset):
         lines = reader.readlines()
         for line in lines:
             self.names.append(line.rstrip())
-        
-        self.names, self.colors = self.filter_by_colors(allowed_color_list)
-        if allowed_color_list != None:
-            self._remap_colors(allowed_color_list)
-            
-    def _load_predictions(self):
-        if self.stage == self.STAGE_PREDICT and self.prediction_file.endswith('.txt'):
-            super()._load_predictions()
-        else:
-            color_col = "colorID" 
-            self.colors = []
+        if self.stage in [self.STAGE_TEST, self.STAGE_TRAIN]:
+            target_col = "typeID" 
+            self.types = []
             label_file = os.path.join(self.data_dir,self.prediction_file)
             xtree = et.parse(label_file, parser=et.XMLParser(encoding="utf-8"))
             xroot = xtree.getroot()[0]
             for label in xroot:
-                self.colors.append(self.to_common_color(int(label.attrib.get(color_col))-1))
+                self.types.append(self.to_common_type(int(label.attrib.get(target_col))-1))
+        
+        self.names, self.types = self.filter_by_types(allowed_type_list)
+        if allowed_type_list != None:
+            self._remap_indexes(allowed_type_list)
+            
+    def _load_predictions(self):
+        if self.stage == self.STAGE_PREDICT:
+            super()._load_predictions()
