@@ -35,16 +35,20 @@ class TypeDataset(Dataset):
         data_dir,
         prediction_file=None,
         stage: Optional[str] = None,
+        data_transform=None,
+        allowed_type_list: List[Type] = None,
     ):
         super().__init__()
         self.data_dir = data_dir
         self.stage = stage
         self.prediction_file = prediction_file
+        self.data_transform = data_transform
+        self.allowed_color_list = allowed_type_list
         self.type_master = Type.list()
 
         # names will be loaded in the implementation
         self.names = []
-        self.types = None
+        self.types = []
         if self.prediction_file != None:
             self._load_predictions()
 
