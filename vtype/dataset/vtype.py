@@ -43,7 +43,7 @@ class TypeDataset(Dataset):
         self.stage = stage
         self.prediction_file = prediction_file
         self.data_transform = data_transform
-        self.allowed_color_list = allowed_type_list
+        self.allowed_type_list = allowed_type_list
         self.type_master = Type.list()
 
         # names will be loaded in the implementation
@@ -68,11 +68,11 @@ class TypeDataset(Dataset):
         """
         return dataset_typ
 
-    def get_type_counts(self, allowed_type_list= None):
+    def get_type_counts(self):
         if self.types != None:
             get_type = lambda i : (
-                allowed_type_list[i]
-                if allowed_type_list != None
+                self.allowed_type_list[i].name
+                if self.allowed_type_list != None
                 else Type(i).name
             )
             c, counts = np.unique(np.array(self.types), return_counts=True)
