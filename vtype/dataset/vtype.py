@@ -127,7 +127,8 @@ class TypeDataset(Dataset):
         # For normalize
         name = self.names[index]
         img = Image.open(os.path.join(self.data_dir, self.img_dir, name))
-        # .convert('RGB') # convert gray to rgb
+        # convert gray to rgb
+        img = img.convert('RGB') 
 
         if self.data_transform != None:
             img = self.data_transform(img)
