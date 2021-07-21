@@ -1,10 +1,11 @@
-from enum import Enum
+from enum import Enum, auto
+
 
 class TypeDatasets(Enum):
-    VRIC= "VRIC"
-    CARS196 = "Cars196"
-    VEHICLE_ID ="VehicleID"
-    BOXCARS116K = "BoxCars116k"
-    COMP_CARS= "CompCars"
-    VERI = "Veri"
-    COMBINED = "Combined"
+    VRIC = auto()
+    CARS196 = auto()
+    VEHICLE_ID = auto()
+    BOXCARS116K = auto()
+    COMP_CARS = auto()
+    VERI = auto()
+    COMBINED = auto()

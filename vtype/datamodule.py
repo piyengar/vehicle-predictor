@@ -2,35 +2,31 @@ import os
 from typing import List, Optional
 
 import pytorch_lightning as pl
-
 # from pl_bolts.datasets import DummyDataset
 from torch.utils.data import ConcatDataset, DataLoader, random_split
 from torchvision import transforms
 
-from .dataset import (
-    BoxCars116kDataset,
-    Cars196Dataset,
-    CompCarsDataset,
-    VehicleIDDataset,
-    VeriDataset,
-    VRICDataset,
-)
+from . import TypeDatasets
+from .dataset import (BoxCars116kDataset, Cars196Dataset, CompCarsDataset,
+                      VehicleIDDataset, VeriDataset, VRICDataset)
 
 
 class TypeDataModule(pl.LightningDataModule):
     def __init__(
         self,
-        dataset_name: str = "VRIC",
+        dataset_type: TypeDatasets = TypeDatasets.VERI,
         data_dir: str = "dataset",
         batch_size: int = 32,
         img_size: int = 224,
+        train_split = 0.7,
         with_predictions=False,
         prediction_file=None,
         allowed_color_list: List[str] = None,
     ):
         super().__init__()
-        self.dataset_name = dataset_name
+        self.dataset_type = dataset_type
         self.data_dir = data_dir
+        self.train_split = train_split
         # we normalize according to ImageNet stats
         normalize = transforms.Normalize(
             mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
@@ -51,31 +47,31 @@ class TypeDataModule(pl.LightningDataModule):
         self.predict_dataset = None
         self.allowed_color_list = allowed_color_list
 
-    def _get_dataset_from_str(
-        self, dataset_name: str = "VRIC", stage: Optional[str] = None
+    def _get_dataset(
+        self, dataset_name: TypeDatasets = TypeDatasets.VERI, stage: Optional[str] = None
     ):
-        if dataset_name == "VRIC":
+        if dataset_name == TypeDatasets.VRIC:
             return VRICDataset(
                 os.path.join(self.data_dir, "VRIC"),
                 data_transform=self.transform,
                 stage=stage,
                 prediction_file=self.prediction_file,
             )
-        elif dataset_name == "Cars196":
+        elif dataset_name == TypeDatasets.CARS196:
             return Cars196Dataset(
                 os.path.join(self.data_dir, "Cars196"),
                 data_transform=self.transform,
                 stage=stage,
                 prediction_file=self.prediction_file,
             )
-        elif dataset_name == "BoxCars116k":
+        elif dataset_name == TypeDatasets.BOXCARS116K:
             return BoxCars116kDataset(
                 os.path.join(self.data_dir, "BoxCars116k"),
                 data_transform=self.transform,
                 stage=stage,
                 prediction_file=self.prediction_file,
             )
-        elif dataset_name == "VehicleID":
+        elif dataset_name == TypeDatasets.VEHICLE_ID:
             return VehicleIDDataset(
                 os.path.join(self.data_dir, "VehicleID"),
                 data_transform=self.transform,
@@ -83,7 +79,7 @@ class TypeDataModule(pl.LightningDataModule):
                 prediction_file=self.prediction_file,
                 allowed_color_list=self.allowed_color_list,
             )
-        elif dataset_name == "CompCars":
+        elif dataset_name == TypeDatasets.COMP_CARS:
             return CompCarsDataset(
                 os.path.join(self.data_dir, "CompCars", "sv_data"),
                 data_transform=self.transform,
@@ -91,7 +87,7 @@ class TypeDataModule(pl.LightningDataModule):
                 prediction_file=self.prediction_file,
                 allowed_type_list=self.allowed_color_list,
             )
-        elif dataset_name == "Veri":
+        elif dataset_name == TypeDatasets.VERI:
             return VeriDataset(
                 os.path.join(self.data_dir, "VeRi_with_plate"),
                 data_transform=self.transform,
@@ -99,7 +95,7 @@ class TypeDataModule(pl.LightningDataModule):
                 prediction_file=self.prediction_file,
                 allowed_type_list=self.allowed_color_list,
             )
-        elif dataset_name == "Combined":
+        elif dataset_name == TypeDatasets.COMBINED:
             # import types
             # from collections import Counter
             # from operator import add
@@ -107,9 +103,10 @@ class TypeDataModule(pl.LightningDataModule):
 
             ds = ConcatDataset(
                 [
-                    self._get_dataset_from_str("Veri", stage),
-                    self._get_dataset_from_str("VehicleID", stage),
-                    self._get_dataset_from_str("CompCars", stage),
+                    self._get_dataset(TypeDatasets.VERI, stage),
+                    self._get_dataset(TypeDatasets.VEHICLE_ID, stage),
+                    self._get_dataset(TypeDatasets.COMP_CARS, stage),
+                    self._get_dataset(TypeDatasets.BOXCARS116K, stage),
                 ]
             )
             # def get_color_counts(self):
@@ -123,14 +120,13 @@ class TypeDataModule(pl.LightningDataModule):
             raise ValueError("Dataset not supported")
 
     def setup(self, stage: Optional[str] = None):
-        train_split = 0.7
         # Assign train/val datasets for use in dataloaders
         if stage == "fit" or stage is None:
-            self.train_val_dataset = self._get_dataset_from_str(
-                self.dataset_name, "train"
+            self.train_val_dataset = self._get_dataset(
+                self.dataset_type, "train"
             )
             ds_len = len(self.train_val_dataset)
-            train_len = int(ds_len * train_split)
+            train_len = int(ds_len * self.train_split)
             val_len = ds_len - train_len
             self.train_dataset, self.val_dataset = random_split(
                 self.train_val_dataset, [train_len, val_len]
@@ -141,10 +137,10 @@ class TypeDataModule(pl.LightningDataModule):
 
         # Assign test dataset for use in dataloader(s)
         if stage == "test" or stage is None:
-            self.test_dataset = self._get_dataset_from_str(self.dataset_name, "test")
+            self.test_dataset = self._get_dataset(self.dataset_type, "test")
         if stage == "predict" or stage is None:
-            self.predict_dataset = self._get_dataset_from_str(
-                self.dataset_name, "predict"
+            self.predict_dataset = self._get_dataset(
+                self.dataset_type, "predict"
             )
 
     def predict_dataloader(self):
