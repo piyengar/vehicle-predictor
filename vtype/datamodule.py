@@ -8,7 +8,7 @@ from torchvision import transforms
 
 from . import TypeDatasets
 from .dataset import (BoxCars116kDataset, Cars196Dataset, CompCarsDataset,
-                      VehicleIDDataset, VeriDataset, VRICDataset)
+                      VehicleIDDataset, VeriDataset, VRICDataset, Type)
 
 
 class TypeDataModule(pl.LightningDataModule):
@@ -21,7 +21,7 @@ class TypeDataModule(pl.LightningDataModule):
         train_split = 0.7,
         with_predictions=False,
         prediction_file=None,
-        allowed_color_list: List[str] = None,
+        allowed_type_list: List[Type] = None,
     ):
         super().__init__()
         self.dataset_type = dataset_type
@@ -45,7 +45,7 @@ class TypeDataModule(pl.LightningDataModule):
         self.val_dataset = None
         self.test_dataset = None
         self.predict_dataset = None
-        self.allowed_color_list = allowed_color_list
+        self.allowed_color_list = allowed_type_list
 
     def _get_dataset(
         self, dataset_name: TypeDatasets = TypeDatasets.VERI, stage: Optional[str] = None

@@ -1,4 +1,4 @@
 from .datasets import TypeDatasets
 from .datamodule import TypeDataModule
-# from .model import ColorModel, valid_archs
-# from .prediction_writer import ColorPredictionWriter
+from .model import TypeModel, valid_archs
+from .prediction_writer import TypePredictionWriter
