@@ -29,9 +29,9 @@ def numel(m: nn.Module, only_trainable: bool = False):
 
 
 def get_conf_data(train_dataset_type:TypeDatasets, dataset_type:TypeDatasets, model_arch: str):
-    prediction_root = os.path.join("predictions/type", train_dataset_type.name)
+    prediction_root = os.path.join("predictions","type")
     predict_model_name = f"{train_dataset_type.name}_{model_arch}"
-    best_model_path = f"checkpoints/type/best_{predict_model_name}.ckpt"
+    best_model_path = os.path.join("checkpoints", "type", f"best_{predict_model_name}.ckpt")
     prediction_out_file = f"{dataset_type.name}_by_{predict_model_name}.txt"
     return prediction_root, predict_model_name, best_model_path, prediction_out_file
 

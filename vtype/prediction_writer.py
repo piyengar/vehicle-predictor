@@ -20,6 +20,7 @@ class TypePredictionWriter(BasePredictionWriter):
         self.file_name = (
             out_file_name if out_file_name is not None else f"{self.dataset_type.name}.txt"
         )
+        os.makedirs(self.output_dir, exist_ok=True)
         with open(os.path.join(self.output_dir, self.file_name), mode="w") as writer:
             writer.truncate()
 
