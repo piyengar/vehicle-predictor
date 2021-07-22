@@ -22,6 +22,7 @@ class TypeDataModule(pl.LightningDataModule):
         with_predictions=False,
         prediction_file=None,
         allowed_type_list: List[Type] = None,
+        num_workers = 1,
     ):
         super().__init__()
         self.dataset_type = dataset_type
@@ -40,6 +41,7 @@ class TypeDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.with_predictions = with_predictions
         self.prediction_file = prediction_file
+        self.num_workers = num_workers
 
         self.train_dataset = None
         self.val_dataset = None
@@ -144,13 +146,13 @@ class TypeDataModule(pl.LightningDataModule):
             )
 
     def predict_dataloader(self):
-        return DataLoader(self.predict_dataset, batch_size=self.batch_size)
+        return DataLoader(self.predict_dataset, batch_size=self.batch_size, num_workers=self.num_workers)
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers)
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=self.batch_size)
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers)
 
     def test_dataloader(self):
-        return DataLoader(self.test_dataset, batch_size=self.batch_size)
+        return DataLoader(self.test_dataset, batch_size=self.batch_size, num_workers=self.num_workers)
