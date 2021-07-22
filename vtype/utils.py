@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,7 +11,8 @@ from torch.utils.data import DataLoader
 from torchmetrics.functional import (accuracy, confusion_matrix, f1, precision,
                                      recall)
 
-from . import TypeDataModule, TypeModel, TypePredictionWriter, TypeDatasets
+from . import TypeDataModule, TypeDatasets, TypeModel, TypePredictionWriter
+from .dataset import Type
 
 
 def numel(m: nn.Module, only_trainable: bool = False):
@@ -26,22 +28,22 @@ def numel(m: nn.Module, only_trainable: bool = False):
     return sum(p.numel() for p in unique)
 
 
-def get_conf_data(train_dataset_type:TypeDatasets, dataset_type:TypeDatasets, model_arch):
-    prediction_root = os.path.join("predictions/color", train_dataset_type.name)
+def get_conf_data(train_dataset_type:TypeDatasets, dataset_type:TypeDatasets, model_arch: str):
+    prediction_root = os.path.join("predictions/type", train_dataset_type.name)
     predict_model_name = f"{train_dataset_type.name}_{model_arch}"
-    best_model_path = f"checkpoints/color/best_{predict_model_name}.ckpt"
+    best_model_path = f"checkpoints/type/best_{predict_model_name}.ckpt"
     prediction_out_file = f"{dataset_type.name}_by_{predict_model_name}.txt"
     return prediction_root, predict_model_name, best_model_path, prediction_out_file
 
 
-def predict_and_persist_color(
+def predict_and_persist_type(
     prediction_root,
     predict_model_name,
     best_model_path,
     prediction_out_file,
     dataset_type: TypeDatasets,
     batch_size,
-    allowed_type_list,
+    allowed_type_list: List[Type],
 ):
     # Callback to persist prediction
     predict_callback = TypePredictionWriter(
@@ -91,8 +93,8 @@ def evaluate_predictions(
     dm_gt.setup("test")
     # gt will be indexed based on the dataset
     print(f"{dataset_type} using {predict_model_name}")
-    colors = dm_gt.test_dataset.colors
-    gt = np.array(colors)
+    types = dm_gt.test_dataset.types
+    gt = np.array(types)
     gt = torch.from_numpy(gt)
     predictions = np.loadtxt(prediction_out_file_path, dtype=int)
     predictions = torch.from_numpy(predictions)
