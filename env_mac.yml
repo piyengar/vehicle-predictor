@@ -1,0 +1,12 @@
+name: carzam-vp
+channels:
+- defaults
+- pytorch
+dependencies:
+- python=3.8
+- pip
+- jupyter
+- matplotlib
+- pytest
+- pytorch
+- torchvision=0.2
