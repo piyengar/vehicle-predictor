@@ -49,7 +49,7 @@ def predict_and_persist_type(
     predict_callback = TypePredictionWriter(
         prediction_root,
         write_interval="batch",
-        dataset_name=dataset_type,
+        dataset_type=dataset_type,
         out_file_name=prediction_out_file,
     )
     # datamodule
