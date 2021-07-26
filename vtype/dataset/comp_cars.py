@@ -17,12 +17,12 @@ class CompCarsDataset(TypeDataset):
         Type.HATCHBACK,     # hatchback
         Type.MINIVAN,       # minibus
         Type.SEDAN,         # fastback
-        Type.WAGON,         # estate
+        Type.SUV,           # estate
         Type.PICKUP,        # pickup
-        Type.CONVERTIBLE,   # hardtop convertible
-        Type.COUPE,         # sports
+        Type.SEDAN,   # hardtop convertible
+        Type.SEDAN,         # sports
         Type.SUV,           # crossover
-        Type.CONVERTIBLE,   # convertible
+        Type.SEDAN,   # convertible
     ]
     
     def __init__(

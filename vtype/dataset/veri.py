@@ -13,12 +13,12 @@ class VeriDataset(TypeDataset):
         Type.SEDAN,         # sedan
         Type.SUV,           # suv
         Type.HATCHBACK,     # van
-        Type.HATCHBACK,         # hatchback
-        Type.SUV,       # mpv
-        Type.PICKUP,           # pickup
+        Type.HATCHBACK,     # hatchback
+        Type.SUV,           # mpv
+        Type.PICKUP,        # pickup
         Type.BUS,           # bus
-        Type.TRUCK,           # truck
-        Type.WAGON,           # estate
+        Type.TRUCK,         # truck
+        Type.SUV,           # estate
     ]
 
     @staticmethod

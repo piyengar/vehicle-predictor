@@ -13,10 +13,10 @@ class Cars196Dataset(TypeDataset):
     _dataset_type_mapping = {
         "suv" : Type.SUV,
         "sedan" : Type.SEDAN,
-        "coupe" : Type.COUPE,
+        "coupe" : Type.SEDAN,
         "hatchback" : Type.HATCHBACK,
-        "convertible" : Type.CONVERTIBLE,
-        "wagon" : Type.WAGON,
+        "convertible" : Type.SEDAN,
+        "wagon" : Type.SUV,
         "pickup" : Type.PICKUP,
         "van" : Type.MINIVAN,
         "cab" : Type.PICKUP,

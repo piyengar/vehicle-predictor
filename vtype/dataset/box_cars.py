@@ -14,7 +14,7 @@ class BoxCars116kDataset(TypeDataset):
     
     # dataset types
     _dataset_type_mapping = [
-        Type.WAGON,         # combi
+        Type.SUV,         # combi
         Type.SUV,           # suv
         Type.HATCHBACK,     # hatchback
         Type.SEDAN,         # sedan
