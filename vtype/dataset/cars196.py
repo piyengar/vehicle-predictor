@@ -60,7 +60,9 @@ class Cars196Dataset(TypeDataset):
             for class_idx in mat["annotations"]["class"][0]:
                 typ = self.src_classes[class_idx[0][0] - 1][1]
                 self.types.append(self.to_common_type(typ))
-
+        self.names, self.colors = self.filter_by_types(allowed_type_list)
+        if allowed_type_list != None:
+            self._remap_indexes(allowed_type_list)
 
     def _load_predictions(self):
         # only for predict
