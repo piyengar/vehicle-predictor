@@ -79,7 +79,7 @@ class CompCarsDataset(TypeDataset):
                     typ = attributes[sv_web_model_map[sv_model_id]][1]
                     typ = self.to_common_type(typ)
                     self.types.append(typ)
-        self.names, self.colors = self.filter_by_types(allowed_type_list)
+        self.names, self.types = self.filter_by_types(allowed_type_list)
         if allowed_type_list != None:
             self._remap_indexes(allowed_type_list)
 

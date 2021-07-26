@@ -8,7 +8,7 @@ class VehicleIDDataset(TypeDataset):
     dataset_name='VehicleID'
     
     # this color list is only for reference, 
-    # convention is to convert all colors to common color scheme
+    # convention is to convert all types to common color scheme
     # color_master = [
     #     'black',
     #     'blue',
@@ -58,7 +58,7 @@ class VehicleIDDataset(TypeDataset):
             # Only small subset of data has color labels
             # print('loading color attributes')
             self.color_attr = {} # vid -> color_id
-            self.colors = []
+            self.types = []
             with open(os.path.join(self.data_dir,self.prediction_file)) as reader:
                 lines = reader.readlines()
                 for line in lines:
@@ -73,17 +73,17 @@ class VehicleIDDataset(TypeDataset):
                     name, vid = line.rstrip().split()
                     if vid in self.color_attr:
                         self.names.append(f'{name}.jpg')
-                        self.colors.append(self.to_common_color(int(self.color_attr[vid])))
+                        self.types.append(self.to_common_color(int(self.color_attr[vid])))
                     # else:
                     #     print(f'could not find name - {name} in color _attr')
             else:
                 for line in lines:
                     name = line.rstrip().split()[0]
                     self.names.append(f'{name}.jpg')
-        self.names, self.colors = self.filter_by_colors(allowed_color_list)
+        self.names, self.types = self.filter_by_colors(allowed_color_list)
         if allowed_color_list != None:
             # print('remapping color list to allowed list')
-            self._remap_colors(allowed_color_list)
+            self._remap_indexes(allowed_color_list)
 
     def _load_predictions(self):
         # only for predict
