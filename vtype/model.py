@@ -1,3 +1,4 @@
+from typing import List
 import matplotlib.pyplot as plt
 import pytorch_lightning as pl
 import torch
@@ -29,7 +30,7 @@ valid_archs = [
 class TypeModel(pl.LightningModule):
     def __init__(
         self,
-        num_classes=11,
+        allowed_type_list: List[Type] = None,
         model_arch: str = "resnet18",
         learning_rate=1e-3,
         lr_step=1,
@@ -37,28 +38,29 @@ class TypeModel(pl.LightningModule):
     ):
         super().__init__()
         self.save_hyperparameters()
-        self.num_classes = num_classes
+        self.types = allowed_type_list or [t.name for t in Type]
+        self.num_classes = len(self.types)
         self.learning_rate = learning_rate
         self.lr_step = lr_step
         self.lr_step_factor = lr_step_factor
-        self.model = self._get_model(model_arch, True, num_classes)
+        self.model = self._get_model(model_arch, True, self.num_classes)
 
         # Metrics
         avg_method = "weighted"
-        self.train_acc = Accuracy(num_classes=num_classes, average=avg_method)
+        self.train_acc = Accuracy(num_classes=self.num_classes, average=avg_method)
 
         self.val_confusion = ConfusionMatrix(
-            num_classes=num_classes, normalize="true", compute_on_step=False
+            num_classes=self.num_classes, normalize="true", compute_on_step=False
         )
-        self.val_acc = Accuracy(num_classes=num_classes, average=avg_method)
-        self.val_prec = Precision(num_classes=num_classes, average=avg_method)
-        self.val_rec = Recall(num_classes=num_classes, average=avg_method)
-        self.val_f1 = F1(num_classes=num_classes, average=avg_method)
+        self.val_acc = Accuracy(num_classes=self.num_classes, average=avg_method)
+        self.val_prec = Precision(num_classes=self.num_classes, average=avg_method)
+        self.val_rec = Recall(num_classes=self.num_classes, average=avg_method)
+        self.val_f1 = F1(num_classes=self.num_classes, average=avg_method)
 
         self.test_confusion = ConfusionMatrix(
-            num_classes=num_classes, normalize="true", compute_on_step=False
+            num_classes=self.num_classes, normalize="true", compute_on_step=False
         )
-        self.test_acc = Accuracy(num_classes=num_classes, average=avg_method)
+        self.test_acc = Accuracy(num_classes=self.num_classes, average=avg_method)
 
     def _get_model(
         self,
@@ -146,7 +148,7 @@ class TypeModel(pl.LightningModule):
 
     def _log_confusion(self, metric: ConfusionMatrix):
         cm = ConfusionMatrixDisplay(
-            metric.compute().cpu().numpy(), display_labels=[t.name for t in Type]
+            metric.compute().cpu().numpy(), display_labels=[t.name for t in self.types]
         )
         fig = cm.plot(cmap=plt.cm.Blues, values_format=".2f").figure_
         self.logger.experiment.add_figure("val_confusion", fig, self.current_epoch)
