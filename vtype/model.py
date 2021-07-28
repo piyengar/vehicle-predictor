@@ -37,12 +37,20 @@ class TypeModel(pl.LightningModule):
         lr_step_factor=0.9,
     ):
         super().__init__()
-        self.save_hyperparameters()
         self.types = allowed_type_list or [t.name for t in Type]
         self.num_classes = len(self.types)
         self.learning_rate = learning_rate
         self.lr_step = lr_step
         self.lr_step_factor = lr_step_factor
+        # add relevant hyper params
+        self.save_hyperparameters({
+            'num_classes': self.num_classes,
+            'learning_rate': learning_rate,
+            'lr_step': lr_step,
+            'lr_step_factor': lr_step_factor,
+            'model_arch': model_arch,
+            'allowed_type_list': allowed_type_list,
+        })
         self.model = self._get_model(model_arch, True, self.num_classes)
 
         # Metrics
