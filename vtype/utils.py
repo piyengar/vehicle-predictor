@@ -44,6 +44,7 @@ def predict_and_persist_type(
     dataset_type: TypeDatasets,
     batch_size,
     allowed_type_list: List[Type],
+    gpus=None,
 ):
     # Callback to persist prediction
     predict_callback = TypePredictionWriter(
@@ -65,7 +66,7 @@ def predict_and_persist_type(
     model = TypeModel.load_from_checkpoint(best_model_path)
     # init trainer
     trainer = pl.Trainer(
-        gpus=-1, progress_bar_refresh_rate=20, callbacks=[predict_callback]
+        gpus=gpus, progress_bar_refresh_rate=20, callbacks=[predict_callback]
     )
     dm.setup("test")
     dl = DataLoader(dm.test_dataset, batch_size=batch_size)
