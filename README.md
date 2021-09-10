@@ -8,6 +8,7 @@ The following folders exist in the project
 - checkpoints - training checkpoints will be stored here, **not tracked by git**
 - color - code for training color based models
 - vtype - code for training type based models
+- test - pytest test cases should be stored here
 
 ## Dataset Sizes for reference
 The storage requirements (when expanded) for the datasets used for this project are given below:
