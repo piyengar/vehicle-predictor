@@ -19,3 +19,15 @@ The storage requirements (when expanded) for the datasets used for this project 
 | CompCars        | 2.5 |
 | Cars196         | 1.9 |
 | BoxCars116k     | 9.2 |
+
+## Metadata available on different datasets
+Not all datasets have all the attributes. See below table for details
+| Dataset         |Color|Type|
+|-----------------|----:|----:|
+| VeRi_with_plate | Y   |    Y|
+| CompCars        | Y   |    Y|
+| Cars196         | N   |    Y|
+| BoxCars116k     | N   |    Y|
+| VehicleID       | Y   |    N|
+| VRIC            | N   |    N|
+
