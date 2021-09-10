@@ -2,10 +2,12 @@
 
 ## Project folder structure
 The following folders exist in the project
-- dataset - not tracked by git, code expects datasets will be in subfolders within it
-- predictions - not tracked by git, predictions will be stored here
-- checkpoints - not tracked by git, training checkpoints will be stored here
+- dataset - code expects datasets will be in subfolders within it, **not tracked by git**
+  - The actual sub-folder structure will be specific to each dataset and details can be found inferred from the dataset class files
+- predictions - predictions will be stored here, **not tracked by git**
+- checkpoints - training checkpoints will be stored here, **not tracked by git**
 - color - code for training color based models
+- vtype - code for training type based models
 
 ## Dataset Sizes for reference
 The storage requirements (when expanded) for the datasets used for this project are given below:
