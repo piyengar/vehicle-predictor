@@ -132,3 +132,4 @@ dmypy.json
 /checkpoints
 /predictions
 /test.py
+/lightning_logs
