@@ -31,11 +31,13 @@ class ColorDataset(Dataset):
         data_dir,
         prediction_file=None,
         stage: Optional[str] = None,
+        allowed_color_list: List[str] = None,
     ):
         super().__init__()
         self.data_dir = data_dir
         self.stage = stage
         self.prediction_file = prediction_file
+        self.allowed_color_list = allowed_color_list
 
         # names will be loaded in the implementation
         self.names = []

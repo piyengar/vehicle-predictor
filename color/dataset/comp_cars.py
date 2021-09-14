@@ -51,7 +51,7 @@ class CompCarsDataset(ColorDataset):
         else:  # predict
             name_file = "color_list.mat"
         self.name_file = name_file
-        super().__init__(data_dir, stage=stage, prediction_file=prediction_file)
+        super().__init__(data_dir, stage=stage, prediction_file=prediction_file, allowed_color_list=allowed_color_list)
         self.img_dir = "image"
         self.data_transform = data_transform
         self.allowed_color_list = allowed_color_list

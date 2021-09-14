@@ -1,3 +1,4 @@
+from typing import List
 import matplotlib.pyplot as plt
 import pytorch_lightning as pl
 import torch
@@ -29,36 +30,45 @@ valid_archs = [
 class ColorModel(pl.LightningModule):
     def __init__(
         self,
-        num_colors=11,
+        allowed_color_list: List[str] = None,
         model_arch: str = "resnet18",
         learning_rate=1e-3,
         lr_step=1,
         lr_step_factor=0.9,
     ):
         super().__init__()
-        self.save_hyperparameters()
-        self.num_colors = num_colors
+        self.colors = allowed_color_list or [t.name for t in ColorDataset.color_master]
+        self.num_classes = len(self.colors)
         self.learning_rate = learning_rate
         self.lr_step = lr_step
         self.lr_step_factor = lr_step_factor
-        self.model = self._get_model(model_arch, True, num_colors)
+        # add relevant hyper params
+        self.save_hyperparameters({
+            'num_classes': self.num_classes,
+            'learning_rate': learning_rate,
+            'lr_step': lr_step,
+            'lr_step_factor': lr_step_factor,
+            'model_arch': model_arch,
+            'allowed_color_list': allowed_color_list,
+        })
+        self.model = self._get_model(model_arch, True, self.num_classes)
 
         # Metrics
         avg_method = "weighted"
-        self.train_acc = Accuracy(num_classes=num_colors, average=avg_method)
+        self.train_acc = Accuracy(num_classes=self.num_classes, average=avg_method)
 
         self.val_confusion = ConfusionMatrix(
-            num_classes=num_colors, normalize="true", compute_on_step=False
+            num_classes=self.num_classes, normalize="true", compute_on_step=False
         )
-        self.val_acc = Accuracy(num_classes=num_colors, average=avg_method)
-        self.val_prec = Precision(num_classes=num_colors, average=avg_method)
-        self.val_rec = Recall(num_classes=num_colors, average=avg_method)
-        self.val_f1 = F1(num_classes=num_colors, average=avg_method)
+        self.val_acc = Accuracy(num_classes=self.num_classes, average=avg_method)
+        self.val_prec = Precision(num_classes=self.num_classes, average=avg_method)
+        self.val_rec = Recall(num_classes=self.num_classes, average=avg_method)
+        self.val_f1 = F1(num_classes=self.num_classes, average=avg_method)
 
         self.test_confusion = ConfusionMatrix(
-            num_classes=num_colors, normalize="true", compute_on_step=False
+            num_classes=self.num_classes, normalize="true", compute_on_step=False
         )
-        self.test_acc = Accuracy(num_classes=num_colors, average=avg_method)
+        self.test_acc = Accuracy(num_classes=self.num_classes, average=avg_method)
 
     def _get_model(
         self,
@@ -66,7 +76,7 @@ class ColorModel(pl.LightningModule):
         pretrained: bool = True,
         num_classes: int = 10,
         only_fine_tune=True,
-    ):
+    ):  # sourcery no-metrics
         model = None
         if model_arch == "resnet18":
             model = resnet18(pretrained=pretrained)
@@ -132,7 +142,7 @@ class ColorModel(pl.LightningModule):
             # change the last Conv2D layer in case of squeezenet. there is no fc layer in the end.
             num_ftrs = 512
             model.classifier._modules["1"] = nn.Conv2d(
-                512, num_classes, kernel_size=(1, 1)
+                num_ftrs, num_classes, kernel_size=(1, 1)
             )
 
             # because in forward pass, there is a view function call which depends on the final output class size.
@@ -146,7 +156,7 @@ class ColorModel(pl.LightningModule):
 
     def _log_confusion(self, metric: ConfusionMatrix):
         cm = ConfusionMatrixDisplay(
-            metric.compute().cpu().numpy(), display_labels=ColorDataset.color_master
+            metric.compute().cpu().numpy(), display_labels=[t for t in self.colors]
         )
         fig = cm.plot(cmap=plt.cm.Blues, values_format=".2f").figure_
         self.logger.experiment.add_figure("val_confusion", fig, self.current_epoch)

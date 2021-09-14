@@ -129,6 +129,6 @@ dmypy.json
 .pyre/
 .vscode/settings.json
 /dataset
-checkpoints/color/
-predictions/color/
+/checkpoints
+/predictions
 /test.py

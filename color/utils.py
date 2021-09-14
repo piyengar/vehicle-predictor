@@ -1,4 +1,5 @@
 import os
+from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,9 +28,9 @@ def numel(m: nn.Module, only_trainable: bool = False):
 
 
 def get_conf_data(train_dataset_name, dataset_name, model_arch):
-    prediction_root = os.path.join("predictions/color", train_dataset_name)
+    prediction_root = os.path.join("predictions", 'color')
     predict_model_name = f"{train_dataset_name}_{model_arch}"
-    best_model_path = f"checkpoints/color/best_{predict_model_name}.ckpt"
+    best_model_path = os.path.join("checkpoints", "color", f"best_{predict_model_name}.ckpt")
     prediction_out_file = f"{dataset_name}_by_{predict_model_name}.txt"
     return prediction_root, predict_model_name, best_model_path, prediction_out_file
 
@@ -42,6 +43,8 @@ def predict_and_persist_color(
     dataset_name,
     batch_size,
     allowed_color_list,
+    gpus=None,
+    num_dataloader_workers=1,
 ):
     # Callback to persist prediction
     predict_callback = ColorPredictionWriter(
@@ -52,18 +55,19 @@ def predict_and_persist_color(
     )
     # datamodule
     dm = ColorDataModule(
-        dataset_name=dataset_name,
+        dataset_type=dataset_name,
         data_dir=f"dataset/",
         allowed_color_list=allowed_color_list,
         with_predictions=True,
-        batch_size=batch_size
+        batch_size=batch_size,
+        num_workers = num_dataloader_workers
         #  prediction_file='train_label.xml'
     )
     # init model from checkpoint
     model = ColorModel.load_from_checkpoint(best_model_path)
     # init trainer
     trainer = pl.Trainer(
-        gpus=-1, progress_bar_refresh_rate=20, callbacks=[predict_callback]
+        gpus=gpus, progress_bar_refresh_rate=20, callbacks=[predict_callback]
     )
     dm.setup("test")
     dl = DataLoader(dm.test_dataset, batch_size=batch_size)
@@ -82,7 +86,7 @@ def evaluate_predictions(
     prediction_out_file_path = f"{prediction_root}/{prediction_out_file}"
     # load dataset with ground truth
     dm_gt = ColorDataModule(
-        dataset_name=dataset_name,
+        dataset_type=dataset_name,
         data_dir=f"dataset/",
         allowed_color_list=allowed_color_list,
         with_predictions=True,
