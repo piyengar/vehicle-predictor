@@ -11,7 +11,8 @@ from torch.utils.data import DataLoader
 from torchmetrics.functional import (accuracy, confusion_matrix, f1, precision,
                                      recall)
 
-from color import ColorDataModule, ColorModel, ColorPredictionWriter
+from color import (ColorDataModule, ColorDatasets, ColorModel,
+                   ColorPredictionWriter)
 
 
 def numel(m: nn.Module, only_trainable: bool = False):
@@ -27,11 +28,11 @@ def numel(m: nn.Module, only_trainable: bool = False):
     return sum(p.numel() for p in unique)
 
 
-def get_conf_data(train_dataset_name, dataset_name, model_arch):
+def get_conf_data(train_dataset: ColorDatasets, test_dataset: ColorDatasets, model_arch):
     prediction_root = os.path.join("predictions", 'color')
-    predict_model_name = f"{train_dataset_name}_{model_arch}"
+    predict_model_name = f"{train_dataset.name}_{model_arch}"
     best_model_path = os.path.join("checkpoints", "color", f"best_{predict_model_name}.ckpt")
-    prediction_out_file = f"{dataset_name}_by_{predict_model_name}.txt"
+    prediction_out_file = f"{test_dataset.name}_by_{predict_model_name}.txt"
     return prediction_root, predict_model_name, best_model_path, prediction_out_file
 
 
@@ -40,7 +41,7 @@ def predict_and_persist_color(
     predict_model_name,
     best_model_path,
     prediction_out_file,
-    dataset_name,
+    test_dataset:ColorDatasets,
     batch_size,
     allowed_color_list,
     gpus=None,
@@ -50,12 +51,12 @@ def predict_and_persist_color(
     predict_callback = ColorPredictionWriter(
         prediction_root,
         write_interval="batch",
-        dataset_name=dataset_name,
+        dataset_name=test_dataset.name,
         out_file_name=prediction_out_file,
     )
     # datamodule
     dm = ColorDataModule(
-        dataset_type=dataset_name,
+        dataset_type=test_dataset,
         data_dir=f"dataset/",
         allowed_color_list=allowed_color_list,
         with_predictions=True,
@@ -79,14 +80,14 @@ def evaluate_predictions(
     predict_model_name,
     best_model_path,
     prediction_out_file,
-    dataset_name,
+    test_dataset: ColorDatasets,
     allowed_color_list,
 ):
 
     prediction_out_file_path = f"{prediction_root}/{prediction_out_file}"
     # load dataset with ground truth
     dm_gt = ColorDataModule(
-        dataset_type=dataset_name,
+        dataset_type=test_dataset,
         data_dir=f"dataset/",
         allowed_color_list=allowed_color_list,
         with_predictions=True,
@@ -94,7 +95,7 @@ def evaluate_predictions(
     )
     dm_gt.setup("test")
     # gt will be indexed based on the dataset
-    print(f"{dataset_name} using {predict_model_name}")
+    print(f"{test_dataset.name} using {predict_model_name}")
     colors = dm_gt.test_dataset.colors
     gt = np.array(colors)
     gt = torch.from_numpy(gt)

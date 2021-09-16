@@ -28,11 +28,11 @@ def numel(m: nn.Module, only_trainable: bool = False):
     return sum(p.numel() for p in unique)
 
 
-def get_conf_data(train_dataset_type:TypeDatasets, dataset_type:TypeDatasets, model_arch: str):
+def get_conf_data(train_dataset_type:TypeDatasets, test_dataset_type:TypeDatasets, model_arch: str):
     prediction_root = os.path.join("predictions","type")
     predict_model_name = f"{train_dataset_type.name}_{model_arch}"
     best_model_path = os.path.join("checkpoints", "type", f"best_{predict_model_name}.ckpt")
-    prediction_out_file = f"{dataset_type.name}_by_{predict_model_name}.txt"
+    prediction_out_file = f"{test_dataset_type.name}_by_{predict_model_name}.txt"
     return prediction_root, predict_model_name, best_model_path, prediction_out_file
 
 
@@ -41,7 +41,7 @@ def predict_and_persist_type(
     predict_model_name,
     best_model_path,
     prediction_out_file,
-    dataset_type: TypeDatasets,
+    test_dataset_type: TypeDatasets,
     batch_size,
     allowed_type_list: List[Type],
     gpus=None,
@@ -50,12 +50,12 @@ def predict_and_persist_type(
     predict_callback = TypePredictionWriter(
         prediction_root,
         write_interval="batch",
-        dataset_type=dataset_type,
+        dataset_type=test_dataset_type,
         out_file_name=prediction_out_file,
     )
     # datamodule
     dm = TypeDataModule(
-        dataset_type=dataset_type,
+        dataset_type=test_dataset_type,
         data_dir=f"dataset/",
         allowed_type_list=allowed_type_list,
         with_predictions=True,
