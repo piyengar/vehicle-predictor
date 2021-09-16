@@ -25,7 +25,16 @@ The following folders exist in the project
 - The dependencies can be installed with the command below executed from the project root dir
 
     `pip install -e .`
-- Local Environment - The dataset files need to be extracted into the `dataset` folder
+- Dataset setup
+  - Local Environment - The dataset files need to be extracted into the `dataset` folder
+  - Colab - The notebooks contain the steps to download the compressed files from google drive and expand it into the `dataset` folder
+
+- Run the notebook. These broad steps are included in the notebooks
+  - Prepare dataset
+  - Train model
+  - View training logs/charts
+  - Run predictions on test sets and save them to files
+  - Evaluate predictions from the files saved in the previous step
 ## Dataset Sizes for reference
 The storage requirements (when expanded) for the datasets used for this project are given below:
 
