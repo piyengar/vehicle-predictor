@@ -1,0 +1,8 @@
+{
+    "exclude": [
+        "dataset",
+        "checkpoints",
+        "predictions",
+        "lightning_logs",
+    ]
+}
