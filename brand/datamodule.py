@@ -21,14 +21,14 @@ from .dataset import (
 class BrandDataModule(pl.LightningDataModule):
     def __init__(
         self,
-        dataset_type: BrandDatasets = BrandDatasets.VRIC,
+        dataset_type: BrandDatasets = BrandDatasets.VEHICLE_ID,
         data_dir: str = "dataset",
         batch_size: int = 32,
         img_size: int = 224,
         train_split=0.7,
         with_predictions=False,
         prediction_file=None,
-        allowed_color_list: List[str] = None,
+        allowed_brand_list: List[str] = None,
         num_workers=1,
     ):
         super().__init__()
@@ -54,10 +54,10 @@ class BrandDataModule(pl.LightningDataModule):
         self.val_dataset = None
         self.test_dataset = None
         self.predict_dataset = None
-        self.allowed_color_list = allowed_color_list
+        self.allowed_brand_list = allowed_brand_list
 
     def _get_dataset(
-        self, dataset_name: BrandDatasets = BrandDatasets.VRIC, stage: Optional[str] = None
+        self, dataset_name: BrandDatasets = BrandDatasets.VEHICLE_ID, stage: Optional[str] = None
     ):
         if dataset_name == BrandDatasets.VEHICLE_ID:
             return VehicleIDDataset(
@@ -65,7 +65,7 @@ class BrandDataModule(pl.LightningDataModule):
                 data_transform=self.transform,
                 stage=stage,
                 prediction_file=self.prediction_file,
-                allowed_color_list=self.allowed_color_list,
+                allowed_brand_list=self.allowed_brand_list,
             )
         # elif dataset_name == BrandDatasets.VRIC:
         #     return VRICDataset(
@@ -91,7 +91,7 @@ class BrandDataModule(pl.LightningDataModule):
         #         data_transform=self.transform,
         #         stage=stage,
         #         prediction_file=self.prediction_file,
-        #         allowed_color_list=self.allowed_color_list,
+        #         allowed_brand_list=self.allowed_brand_list,
         #     )
         # elif dataset_name == BrandDatasets.VERI:
         #     return VeriDataset(
@@ -99,7 +99,7 @@ class BrandDataModule(pl.LightningDataModule):
         #         data_transform=self.transform,
         #         stage=stage,
         #         prediction_file=self.prediction_file,
-        #         allowed_color_list=self.allowed_color_list,
+        #         allowed_brand_list=self.allowed_brand_list,
         #     )
         # elif dataset_name == BrandDatasets.COMBINED:
         #     # import types
@@ -114,11 +114,11 @@ class BrandDataModule(pl.LightningDataModule):
         #             self._get_dataset(BrandDatasets.COMP_CARS, stage),
         #         ]
         #     )
-        #     # def get_color_counts(self):
-        #     #     cc = map(lambda d: Counter(d.get_color_counts()), ds.datasets)
+        #     # def get_brand_counts(self):
+        #     #     cc = map(lambda d: Counter(d.get_brand_counts()), ds.datasets)
         #     #     cc = reduce(add, cc)
         #     #     return cc
-        #     # ds.get_color_counts = types.MethodType(get_color_counts, ds)
+        #     # ds.get_brand_counts = types.MethodType(get_brand_counts, ds)
 
         #     return ds
         else:
