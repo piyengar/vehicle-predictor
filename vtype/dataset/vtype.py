@@ -108,6 +108,9 @@ class TypeDataset(Dataset):
             custom_type_list (List[Type]): The new order that the types field should refer to.
         
         """
+        if not custom_type_list:
+            self.types = list(map(lambda b: b.value, self.types))
+            return
         mapping = []
         for typ in self.type_master:
             if typ in custom_type_list:

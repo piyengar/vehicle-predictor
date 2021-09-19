@@ -1,13 +1,13 @@
 import os
 from typing import Any, List, Optional
-from enum import Enum, auto
+from enum import IntEnum, auto
 
 import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
 
 
-class Brand(Enum):
+class Brand(IntEnum):
     AUDI= auto()
     BMW= auto()
     BUICK= auto()
@@ -61,6 +61,10 @@ class Brand(Enum):
     VOLVO= auto()
     WULING= auto()
     ZHONGHUA= auto()
+    
+    @staticmethod
+    def list():
+        return list(map(lambda c: c.value, Brand))
 
 # Superclass for Datasets
 class BrandDataset(Dataset):
@@ -73,16 +77,16 @@ class BrandDataset(Dataset):
         data_dir,
         prediction_file=None,
         stage: Optional[str] = None,
-        allowed_class_list: List[str] = None,
+        allowed_brand_list: List[Brand] = None,
         data_transform = None,
     ):
         super().__init__()
         self.data_dir = data_dir
         self.stage = stage
         self.prediction_file = prediction_file
-        self.allowed_class_list = allowed_class_list
+        self.allowed_brand_list = allowed_brand_list
         self.data_transform = data_transform
-        self.class_master = Brand.list()
+        self.brand_master = Brand.list()
 
         # names will be loaded in the implementation
         self.names = []
@@ -109,8 +113,8 @@ class BrandDataset(Dataset):
     def get_brand_counts(self):
         if self.brands != None:
             get_brand = lambda i : (
-                self.allowed_class_list[i].name
-                if self.allowed_class_list != None
+                self.allowed_brand_list[i].name
+                if self.allowed_brand_list != None
                 else Brand(i).name
             )
             c, counts = np.unique(np.array(self.brands), return_counts=True)
@@ -118,16 +122,16 @@ class BrandDataset(Dataset):
                 (brand, get_brand(brand), count) for brand, count in zip(c, counts)
             ]
 
-    def filter_by_brands(self, class_list: List[Brand] = None):
+    def filter_by_brands(self, brand_list: List[Brand] = None) -> List[Brand]:
         """
         Returns a filtered list of names, brands
         """
-        if class_list == None or class_list == [] or self.brands == None:
+        if brand_list == None or brand_list == [] or self.brands == None:
             return self.names, self.brands
 
         def fil_fun(entry):
             name, brand = entry
-            return self.brand_master[brand] in class_list
+            return self.brand_master[brand] in brand_list
 
         # return a filtered list of names, brands
         filtered_tuples = filter(fil_fun, zip(self.names, self.brands))
@@ -138,8 +142,12 @@ class BrandDataset(Dataset):
             brands.append(tup[1])
         return names, brands
 
-    def _remap_brands(self, custom_brand_list):
+    def _remap_brands(self, custom_brand_list: List[Brand]):
         mapping = []
+        if not custom_brand_list:
+            self.brands = list(map(lambda b: b.value, self.brands))
+            return
+            
         for brand in self.brand_master:
             if brand in custom_brand_list:
                 mapping.append(custom_brand_list.index(brand))

@@ -94,6 +94,9 @@ class ColorDataset(Dataset):
         return names, colors
 
     def _remap_colors(self, custom_color_list):
+        if not custom_color_list:
+            self.colors = list(map(lambda b: b.value, self.colors))
+            return
         mapping = []
         for color in self.color_master:
             if color in custom_color_list:

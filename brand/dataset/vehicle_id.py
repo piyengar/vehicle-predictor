@@ -281,7 +281,7 @@ class VehicleIDDataset(BrandDataset):
 
     def __init__(self, data_dir, 
                  data_transform = None, stage:str = None, prediction_file=None,
-                 allowed_brand_list:List[str] = None
+                 allowed_brand_list:List[Brand] = None
                  ):
         self.img_dir = 'image'
         if stage == self.STAGE_TRAIN:
