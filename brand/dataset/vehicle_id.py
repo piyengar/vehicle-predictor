@@ -289,7 +289,7 @@ class VehicleIDDataset(BrandDataset):
             name_file = 'train_test_split/train_list.txt'
             prediction_file = 'attribute/model_attr.txt'
         elif stage == self.STAGE_TEST:
-            name_file = 'train_test_split/test_list.txt'
+            name_file = 'train_test_split/test_list_13164.txt'
             prediction_file = 'attribute/model_attr.txt'
         else: # predict
             name_file = 'train_test_split/train_list.txt'

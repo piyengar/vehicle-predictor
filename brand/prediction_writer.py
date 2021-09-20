@@ -3,6 +3,7 @@ import numpy as np
 from typing import List, Any
 from pytorch_lightning.callbacks import BasePredictionWriter
 from pytorch_lightning.core.lightning import LightningModule
+from . import BrandDatasets
 
 
 class BrandPredictionWriter(BasePredictionWriter):
@@ -10,7 +11,7 @@ class BrandPredictionWriter(BasePredictionWriter):
         self,
         output_dir: str,
         write_interval: str = "epoch",
-        dataset_name: str = "VRIC",
+        dataset_name: BrandDatasets = BrandDatasets.VEHICLE_ID,
         out_file_name: str = None,
     ):
         super().__init__(write_interval)
@@ -19,6 +20,7 @@ class BrandPredictionWriter(BasePredictionWriter):
         self.file_name = (
             out_file_name if out_file_name is not None else f"{self.dataset_name}.txt"
         )
+        os.makedirs(self.output_dir, exist_ok=True)
         with open(os.path.join(self.output_dir, self.file_name), mode="w") as writer:
             writer.truncate()
 
