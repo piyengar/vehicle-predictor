@@ -342,8 +342,11 @@ class VehicleIDDataset(BrandDataset):
         # shuffle with seed and then pick first part for train and second for test
         if self.stage in [self.STAGE_TRAIN, self.STAGE_TEST]:
             rnd = random.Random(TRAIN_TEST_SPLIT_SEED)
-            rnd.shuffle(self.names)
-            rnd.shuffle(self.brands)
+            zlist = list(zip(self.names, self.brands))
+            rnd.shuffle(zlist)
+            self.names, self.brands = zip(*zlist)
+            self.names = list(self.names)
+            self.brands = list(self.brands)
             # length of the dataset
             ds_len = len(self.names)
             # len of the train set

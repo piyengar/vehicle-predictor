@@ -26,13 +26,13 @@ class TestVehicleID:
         ds = VehicleIDDataset(self.data_dir, None, stage=stage)
         assert len(ds) == 45084
         brand_dist = ds.get_brand_counts()
-        assert brand_dist[0][2] == 1338
+        assert brand_dist[0][2] == 1407
         
         stage = BrandDataset.STAGE_TRAIN
         ds = VehicleIDDataset(self.data_dir, None, stage=stage)
         assert len(ds) == 45084
         brand_dist = ds.get_brand_counts()
-        assert brand_dist[0][2] == 1391
+        assert brand_dist[0][2] == 1322
         
         
         ds = VehicleIDDataset(self.data_dir, None, stage=stage, allowed_brand_list=self.allowed_brand_list)
