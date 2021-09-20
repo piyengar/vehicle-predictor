@@ -15,7 +15,7 @@ from torchvision.models import (
     squeezenet1_1,
 )
 
-from .dataset import BrandDataset
+from .dataset import BrandDataset, Brand
 
 valid_archs = [
     "resnet18",
@@ -37,7 +37,7 @@ class BrandModel(pl.LightningModule):
         lr_step_factor=0.9,
     ):
         super().__init__()
-        self.brands = allowed_brand_list or [t.name for t in BrandDataset.brand_master]
+        self.brands = allowed_brand_list or [t.name for t in Brand]
         self.num_classes = len(self.brands)
         self.learning_rate = learning_rate
         self.lr_step = lr_step

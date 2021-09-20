@@ -128,6 +128,7 @@ class BrandDataset(Dataset):
         """
         if brand_list == None or brand_list == [] or self.brands == None:
             return self.names, self.brands
+        brand_list = list(map(lambda t: t.value, brand_list))
 
         def fil_fun(entry):
             name, brand = entry

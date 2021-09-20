@@ -20,7 +20,7 @@ class VehicleIDDataset(BrandDataset):
     # ]
 
     @staticmethod
-    def to_common_brand(dataset_brand):
+    def to_common_brand(dataset_brand: int) -> int:
         '''
         Convert dataset specific brand code to common brand code.
         Return the same code by default
@@ -277,7 +277,8 @@ class VehicleIDDataset(BrandDataset):
             Brand.TOYOTA,
             Brand.MERCEDES,
         ]
-        return _common_brand_mapping[dataset_brand]
+        # subtract 1 as the auto numbering starts from 1
+        return _common_brand_mapping[dataset_brand].value - 1
 
     def __init__(self, data_dir, 
                  data_transform = None, stage:str = None, prediction_file=None,
