@@ -115,7 +115,7 @@ class BrandDataset(Dataset):
             get_brand = lambda i : (
                 self.allowed_brand_list[i].name
                 if self.allowed_brand_list != None
-                else Brand(i).name
+                else Brand(i+1).name
             )
             c, counts = np.unique(np.array(self.brands), return_counts=True)
             return [
