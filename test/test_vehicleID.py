@@ -21,17 +21,23 @@ class TestVehicleID:
         Brand.HONDA,
     ]
     
-    def test_dataset_setup(self):
+    def test_brand_dataset_setup(self):
         stage = BrandDataset.STAGE_TEST
         ds = VehicleIDDataset(self.data_dir, None, stage=stage)
-        assert len(ds) == 8144
+        assert len(ds) == 45084
         brand_dist = ds.get_brand_counts()
-        assert brand_dist[0][2] == 2075
+        assert brand_dist[0][2] == 1338
+        
+        stage = BrandDataset.STAGE_TRAIN
+        ds = VehicleIDDataset(self.data_dir, None, stage=stage)
+        assert len(ds) == 45084
+        brand_dist = ds.get_brand_counts()
+        assert brand_dist[0][2] == 1391
         
         
         ds = VehicleIDDataset(self.data_dir, None, stage=stage, allowed_brand_list=self.allowed_brand_list)
         brand_dist = ds.get_brand_counts()
-        assert len(brand_dist) == 4
+        assert len(brand_dist) == 10
         
     def test_datamodule_setup(self):
         stage = BrandDataset.STAGE_TRAIN

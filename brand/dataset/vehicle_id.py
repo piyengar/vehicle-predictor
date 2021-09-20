@@ -1,9 +1,11 @@
 import os
 from typing import List
+import random
 
 from . import BrandDataset, Brand
 
-
+# the test set does not have model annotations. randomly split the train into test/train using fixed seed
+TRAIN_TEST_SPLIT_SEED = 1
 class VehicleIDDataset(BrandDataset):
     dataset_name='VehicleID'
     
@@ -285,6 +287,7 @@ class VehicleIDDataset(BrandDataset):
                  allowed_brand_list:List[Brand] = None
                  ):
         self.img_dir = 'image'
+        self.test_train_split = 0.5
         if stage == self.STAGE_TRAIN:
             name_file = 'train_test_split/train_list.txt'
             prediction_file = 'attribute/model_attr.txt'
@@ -328,8 +331,26 @@ class VehicleIDDataset(BrandDataset):
         if allowed_brand_list != None:
             # print('remapping brand list to allowed list')
             self._remap_brands(allowed_brand_list)
+        self._pick_test_train()
 
     def _load_predictions(self):
         # only for predict
         if self.stage == self.STAGE_PREDICT:
             super()._load_predictions()
+            
+    def _pick_test_train(self):
+        # shuffle with seed and then pick first part for train and second for test
+        if self.stage in [self.STAGE_TRAIN, self.STAGE_TEST]:
+            rnd = random.Random(TRAIN_TEST_SPLIT_SEED)
+            rnd.shuffle(self.names)
+            rnd.shuffle(self.brands)
+            # length of the dataset
+            ds_len = len(self.names)
+            # len of the train set
+            train_len = int(ds_len * self.test_train_split)
+            if self.stage  == self.STAGE_TRAIN:
+                self.names = self.names[0:train_len]
+                self.brands = self.brands[0:train_len]
+            else:
+                self.names = self.names[train_len:ds_len]
+                self.brands = self.brands[train_len:ds_len]
