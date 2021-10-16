@@ -158,7 +158,7 @@ class TypeModel(pl.LightningModule):
         cm = ConfusionMatrixDisplay(
             metric.compute().cpu().numpy(), display_labels=[t.name for t in self.types]
         )
-        fig = cm.plot(cmap=plt.cm.Blues, values_format=".2f").figure_
+        fig = cm.plot(cmap=plt.cm.Blues, values_format=".2f", xticks_rotation='vertical').figure_
         self.logger.experiment.add_figure("val_confusion", fig, self.current_epoch)
 
     def forward(self, x):
