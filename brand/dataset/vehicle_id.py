@@ -280,7 +280,7 @@ class VehicleIDDataset(BrandDataset):
             Brand.MERCEDES,
         ]
         # subtract 1 as the auto numbering starts from 1
-        return _common_brand_mapping[dataset_brand].value - 1
+        return _common_brand_mapping[dataset_brand].value
 
     def __init__(self, data_dir, 
                  data_transform = None, stage:str = None, prediction_file=None,

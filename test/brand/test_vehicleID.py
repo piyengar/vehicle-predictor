@@ -44,14 +44,14 @@ class TestVehicleID:
         dm = BrandDataModule(BrandDatasets.VEHICLE_ID, self.dataset_root)
         dm.setup('fit')
         ds = dm.train_val_dataset
-        assert len(ds) == 8144
+        assert len(ds) == 45084
         brand_dist = ds.get_brand_counts()
-        assert brand_dist[0][2] == 2075
+        assert brand_dist[0][2] == 1322
         
         dm = BrandDataModule(BrandDatasets.VEHICLE_ID, self.dataset_root, allowed_brand_list=self.allowed_brand_list)
         dm.setup('fit')
         ds = dm.train_val_dataset
         brand_dist = ds.get_brand_counts()
-        assert len(brand_dist) == 4
+        assert len(brand_dist) == 10
         
         

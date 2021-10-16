@@ -3,7 +3,7 @@ from typing import List, Union
 
 from scipy.io import loadmat
 
-from . import BrandDataset, Type
+from . import BrandDataset, Brand
 
 
 # CompCars
@@ -11,18 +11,18 @@ class CompCarsDataset(BrandDataset):
     dataset_name = "CompCars"
 
     _dataset_brand_mapping = [
-        Type.SUV,           # MPV
-        Type.SUV,           # SUV
-        Type.SEDAN,         # sedan
-        Type.HATCHBACK,     # hatchback
-        Type.MINIVAN,       # minibus
-        Type.SEDAN,         # fastback
-        Type.SUV,           # estate
-        Type.PICKUP,        # pickup
-        Type.SEDAN,   # hardtop convertible
-        Type.SEDAN,         # sports
-        Type.SUV,           # crossover
-        Type.SEDAN,   # convertible
+        # Type.SUV,           # MPV
+        # Type.SUV,           # SUV
+        # Type.SEDAN,         # sedan
+        # Type.HATCHBACK,     # hatchback
+        # Type.MINIVAN,       # minibus
+        # Type.SEDAN,         # fastback
+        # Type.SUV,           # estate
+        # Type.PICKUP,        # pickup
+        # Type.SEDAN,   # hardtop convertible
+        # Type.SEDAN,         # sports
+        # Type.SUV,           # crossover
+        # Type.SEDAN,   # convertible
     ]
     
     def __init__(
@@ -89,7 +89,7 @@ class CompCarsDataset(BrandDataset):
             super()._load_predictions()
 
     @staticmethod
-    def to_common_brand(dataset_typ: Union[str,int]) -> Type:
+    def to_common_brand(dataset_typ: Union[str,int]) -> Brand:
         """Convert dataset specific brand code to common brand defined in the Type enum.
         Return the same code by default
 

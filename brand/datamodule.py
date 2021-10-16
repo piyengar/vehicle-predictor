@@ -10,7 +10,7 @@ from torchvision import transforms
 from . import BrandDatasets
 from .dataset import (
     # BoxCars116kDataset,
-    # Cars196Dataset,
+    Cars196Dataset,
     # CompCarsDataset,
     VehicleIDDataset,
     # VeriDataset,
@@ -73,12 +73,14 @@ class BrandDataModule(pl.LightningDataModule):
         #         data_transform=self.transform,
         #         with_predictions=self.with_predictions,
         #     )
-        # elif dataset_name == BrandDatasets.CARS196:
-        #     return Cars196Dataset(
-        #         os.path.join(self.data_dir, "Cars196"),
-        #         data_transform=self.transform,
-        #         with_predictions=self.with_predictions,
-        #     )
+        elif dataset_name == BrandDatasets.CARS196:
+            return Cars196Dataset(
+                os.path.join(self.data_dir, "Cars196"),
+                data_transform=self.transform,
+                stage=stage,
+                prediction_file=self.prediction_file,
+                allowed_brand_list=self.allowed_brand_list,
+            )
         # elif dataset_name == BrandDatasets.BOXCARS116K:
         #     return BoxCars116kDataset(
         #         os.path.join(self.data_dir, "BoxCars116k"),

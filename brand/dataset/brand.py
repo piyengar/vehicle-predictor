@@ -8,6 +8,10 @@ from torch.utils.data import Dataset
 
 
 class Brand(IntEnum):
+    def _generate_next_value_(self, _start, count, _last_values):
+        """Generate consecutive automatic numbers starting from zero."""
+        return count
+    
     AUDI= auto()
     BMW= auto()
     BUICK= auto()
@@ -61,6 +65,35 @@ class Brand(IntEnum):
     VOLVO= auto()
     WULING= auto()
     ZHONGHUA= auto()
+    HUMMER= auto()
+    ASTON_MARTIN= auto()
+    ACURA= auto()
+    BENTLEY= auto()
+    BUGATTI= auto()
+    CHRYSLER= auto()
+    DAEWOO= auto()
+    DODGE= auto()
+    EAGLE= auto()
+    FIAT= auto()
+    FERRARI= auto()
+    FISKER= auto()
+    GMC= auto()
+    GEO= auto()
+    INFINITI= auto()
+    ISUZU= auto()
+    JAGUAR= auto()
+    LAMBORGHINI= auto()
+    LINCOLN= auto()
+    MAYBACH= auto()
+    MCLAREN= auto()
+    PLYMOUTH= auto()
+    PORSCHE= auto()
+    RAM= auto()
+    ROLLS_ROYCE= auto()
+    SCION= auto()
+    SPYKER= auto()
+    TESLA= auto()
+    SMART= auto()
     
     @staticmethod
     def list():
@@ -90,7 +123,7 @@ class BrandDataset(Dataset):
 
         # names will be loaded in the implementation
         self.names = []
-        self.brands = None
+        self.brands: List[int] = None
         if self.prediction_file != None:
             self._load_predictions()
 
@@ -115,7 +148,7 @@ class BrandDataset(Dataset):
             get_brand = lambda i : (
                 self.allowed_brand_list[i].name
                 if self.allowed_brand_list != None
-                else Brand(i+1).name
+                else Brand(i).name
             )
             c, counts = np.unique(np.array(self.brands), return_counts=True)
             return [

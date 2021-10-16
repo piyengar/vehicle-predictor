@@ -14,12 +14,12 @@ class BoxCars116kDataset(BrandDataset):
     
     # dataset brands
     _dataset_brand_mapping = [
-        Brand.SUV,         # combi
-        Brand.SUV,           # suv
-        Brand.HATCHBACK,     # hatchback
-        Brand.SEDAN,         # sedan
-        Brand.MINIVAN,       # van
-        Brand.SUV,           # mpv
+        # Brand.SUV,         # combi
+        # Brand.SUV,           # suv
+        # Brand.HATCHBACK,     # hatchback
+        # Brand.SEDAN,         # sedan
+        # Brand.MINIVAN,       # van
+        # Brand.SUV,           # mpv
     ]
 
     def __init__(
