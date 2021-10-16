@@ -12,7 +12,7 @@ class TestCars196:
         Type.SEDAN,
         Type.HATCHBACK,
         Type.SUV,
-        Type.WAGON,
+        Type.PICKUP,
     ]
     
     def test_dataset_setup(self):
@@ -34,7 +34,7 @@ class TestCars196:
         ds = dm.train_val_dataset
         assert len(ds) == 8144
         type_dist = ds.get_type_counts()
-        assert type_dist[0][2] == 2075
+        assert type_dist[0][2] == 4493
         
         dm = TypeDataModule(TypeDatasets.CARS196, self.dataset_root, allowed_type_list=self.allowed_type_list)
         dm.setup('fit')
