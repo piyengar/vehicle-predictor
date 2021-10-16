@@ -8,7 +8,8 @@ class TestCars196:
     
     dataset_root = 'dataset'
     data_dir = os.path.join(dataset_root, 'Cars196')
-    allowed_type_list = [Type.SEDAN,
+    allowed_type_list = [
+        Type.SEDAN,
         Type.HATCHBACK,
         Type.SUV,
         Type.WAGON,
@@ -19,7 +20,7 @@ class TestCars196:
         ds = Cars196Dataset(self.data_dir, None, stage=stage)
         assert len(ds) == 8144
         type_dist = ds.get_type_counts()
-        assert type_dist[0][2] == 2075
+        assert type_dist[0][2] == 4493
         
         
         ds = Cars196Dataset(self.data_dir, None, stage=stage, allowed_type_list=self.allowed_type_list)
