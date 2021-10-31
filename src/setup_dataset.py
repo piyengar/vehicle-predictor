@@ -4,26 +4,7 @@ import argparse
 from zipfile import ZipFile
 from enum import Enum, auto
 import gdown
-
-class Datasets(Enum):
-    VEHICLE_ID = auto()
-    VRIC = auto()
-    CARS196 = auto()
-    BOXCARS116K = auto()
-    COMP_CARS = auto()
-    VERI = auto()
-    COMBINED = auto()
-    
-    def __str__(self):
-        return self.name
-    
-    @staticmethod
-    def from_string(s):
-        try:
-            return Datasets[s]
-        except KeyError:
-            raise ValueError()
-
+from .datasets import Datasets
 
 def setup_dataset(dataset: Datasets, dataset_src_root:str= 'carzam', dest_dir:str = 'dataset'):
     if dataset == Datasets.COMP_CARS:
