@@ -6,9 +6,9 @@ from enum import Enum, auto
 import gdown
 from .datasets import Datasets
 
-def setup_dataset(dataset: Datasets, dataset_src_root:str= 'carzam', dest_dir:str = 'dataset'):
+def setup_dataset(dataset: Datasets, dataset_src_root:str= 'dataset_source', dest_dir:str = 'dataset'):
     if dataset == Datasets.COMP_CARS:
-        os.makedirs(os.path.join(dest_dir, 'Datasets'), exist_ok=True)
+        os.makedirs(os.path.join(dest_dir), exist_ok=True)
         archive_path = os.path.join(dataset_src_root, 'CompCars', 'sv_data.zip')
         temp_file = os.path.join(dest_dir, 'cc_combined.zip')
         subprocess.run(['zip', '-F', archive_path,  '-b', dest_dir, '--out', temp_file])
@@ -16,26 +16,26 @@ def setup_dataset(dataset: Datasets, dataset_src_root:str= 'carzam', dest_dir:st
         os.remove(temp_file)
     elif dataset == Datasets.VEHICLE_ID:
         os.makedirs(os.path.join(dest_dir), exist_ok=True)
-        archive_path = os.path.join(dataset_src_root, 'Datasets', 'VehicleID_V1.0.zip')
+        archive_path = os.path.join(dataset_src_root, 'VehicleID_V1.0.zip')
         subprocess.run(['unzip', '-P', 'CVPR16_IDM@PKU', '-d', dest_dir, archive_path])
         os.rename(os.path.join(dest_dir, "VehicleID_V1.0"), os.path.join(dest_dir, "VehicleID"))
     elif dataset == Datasets.VERI:
         os.makedirs(os.path.join(dest_dir), exist_ok=True)
-        archive_path = os.path.join(dataset_src_root, 'Datasets', 'VeRi_with_plate.zip')
+        archive_path = os.path.join(dataset_src_root, 'VeRi_with_plate.zip')
         subprocess.run(['unzip', '-d', dest_dir, archive_path])
     elif dataset == Datasets.CARS196:
         os.makedirs(os.path.join(dest_dir, 'Cars196'), exist_ok=True)
-        archive_path = os.path.join(dataset_src_root, 'Datasets', 'Cars196.zip')
+        archive_path = os.path.join(dataset_src_root, 'Cars196.zip')
         # print(archive_path)
         # print(" ".join(['unzip', '-d', os.path.join(dest_dir, 'Cars196'), archive_path]))
         subprocess.run(['unzip', '-d', os.path.join(dest_dir, 'Cars196'), archive_path])
     elif dataset == Datasets.BOXCARS116K:
         os.makedirs(os.path.join(dest_dir), exist_ok=True)
-        archive_path = os.path.join(dataset_src_root, 'Datasets', 'BoxCars116k.zip')
+        archive_path = os.path.join(dataset_src_root, 'BoxCars116k.zip')
         subprocess.run(['unzip', '-d', dest_dir, archive_path])
     elif dataset == Datasets.VRIC:
         os.makedirs(os.path.join(dest_dir, 'VRIC'), exist_ok=True)
-        archive_path = os.path.join(dataset_src_root, 'Datasets', 'VRIC.zip')
+        archive_path = os.path.join(dataset_src_root, 'VRIC.zip')
         subprocess.run(['unzip', '-d', os.path.join(dest_dir, 'VRIC'), archive_path])
         
 def download_dataset(dataset: Datasets, source: str = 'gdrive', temp_folder:str = 'dataset_source'):
@@ -62,22 +62,3 @@ def download_dataset(dataset: Datasets, source: str = 'gdrive', temp_folder:str 
             files.append('https://drive.google.com/file/d/17WODwYLOIwZDK-yA1vzxS6shf2XPBAkL/view?usp=sharing')
         for file in files:
             gdown.download(fuzzy=True, url=file, output=temp_folder)
-        
-    
-if __name__=="__main__":
-    parser=argparse.ArgumentParser(
-        description="Setup dataset by downloading it from remote storage and extract it in a local subfolder")
-    parser.add_argument("--dataset-dir","-dd",help="Root directory for the datasets to be extracted into", default="./dataset")
-    parser.add_argument("--source","-s",help="Remote location where dataset archives can be downloaded from", default="gdrive", choices=['gdrive', 'local'])
-    parser.add_argument("--dataset-name","-n",help="Name of the dataset to download", default="VERI", \
-        choices=list(Datasets), type=Datasets.from_string)
-    parser.add_argument("--archive-folder", '-a', help="Folder where the downloaded archive files will be stored", default="dataset_source")
-    
-    args=parser.parse_args()
-    
-    # download the archive
-    if args.source in ['gdrive']:
-        download_dataset(args.datasetName, args.source, args.archiveFolder)
-    # extract the archive
-    if args.datasetDir:
-        setup_dataset(args.datasetName, args.archiveFolder, args.datasetDir)
