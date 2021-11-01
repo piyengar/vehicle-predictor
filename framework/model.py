@@ -15,8 +15,6 @@ from torchvision.models import (
     squeezenet1_1,
 )
 
-from .dataset import BrandDataset, Brand
-
 valid_archs = [
     "resnet18",
     "resnet50",
@@ -27,18 +25,18 @@ valid_archs = [
 ]
 
 
-class BrandModel(pl.LightningModule):
+class BaseModel(pl.LightningModule):
     def __init__(
         self,
-        allowed_brand_list: List[str] = None,
+        class_names: List[str],
         model_arch: str = "resnet18",
         learning_rate=1e-3,
         lr_step=1,
         lr_step_factor=0.9,
     ):
         super().__init__()
-        self.brands = allowed_brand_list or [t.name for t in Brand]
-        self.num_classes = len(self.brands)
+        self.class_names = class_names
+        self.num_classes = len(self.class_names)
         self.learning_rate = learning_rate
         self.lr_step = lr_step
         self.lr_step_factor = lr_step_factor
@@ -49,7 +47,7 @@ class BrandModel(pl.LightningModule):
             'lr_step': lr_step,
             'lr_step_factor': lr_step_factor,
             'model_arch': model_arch,
-            'allowed_brand_list': allowed_brand_list,
+            'class_names': class_names,
         })
         self.model = self._get_model(model_arch, True, self.num_classes)
 
@@ -156,7 +154,7 @@ class BrandModel(pl.LightningModule):
 
     def _log_confusion(self, metric: ConfusionMatrix):
         cm = ConfusionMatrixDisplay(
-            metric.compute().cpu().numpy(), display_labels=[t for t in self.brands]
+            metric.compute().cpu().numpy(), display_labels=[t for t in self.class_names]
         )
         fig = cm.plot(cmap=plt.cm.Blues, values_format=".2f", xticks_rotation='vertical').figure_
         self.logger.experiment.add_figure("val_confusion", fig, self.current_epoch)

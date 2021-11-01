@@ -4,8 +4,8 @@ import argparse
 from zipfile import ZipFile
 from enum import Enum, auto
 import gdown
-from src.datasets import Datasets
-from src.setup_dataset import setup_dataset, download_dataset
+from framework.datasets import Datasets
+from framework.setup_dataset import setup_dataset, download_dataset
 
 COMMAND_DOWNLOAD = "download"
 COMMAND_SETUP = "setup"
