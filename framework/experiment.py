@@ -29,7 +29,7 @@ class BaseExperiment(ABC):
     
     @classmethod
     @abstractmethod
-    def train(self):
+    def train(self) -> str:
         pass
     
     @classmethod

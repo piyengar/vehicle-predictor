@@ -11,6 +11,7 @@ from pytorch_lightning.callbacks import (
     EarlyStopping,
     LearningRateMonitor,
     ModelCheckpoint,
+    model_checkpoint,
 )
 
 
@@ -89,12 +90,13 @@ class BrandExperiment(BaseExperiment):
             num_workers=self.num_workers,
         )
 
-    def train(self):
+    def train(self) -> str:
         # init model
         model = self.get_model()
         # init datamodule
         dm = self.get_train_data_module()
         # callbacks
+        model_checkpoint_cb = ModelCheckpoint(monitor="val_acc", mode="max")
         callbacks = [
             EarlyStopping(
                 "val_acc",
@@ -104,7 +106,7 @@ class BrandExperiment(BaseExperiment):
                 min_delta=self.early_stop_delta,
             ),
             LearningRateMonitor(logging_interval="epoch"),
-            ModelCheckpoint(monitor="val_acc", mode="max"),
+            model_checkpoint_cb,
         ]
         # Initialize a trainer
         trainer = pl.Trainer(
@@ -115,3 +117,6 @@ class BrandExperiment(BaseExperiment):
             default_root_dir=os.path.join(self.checkpoints_root, self.get_name()),
             callbacks=callbacks,
         )
+        trainer.fit(model, datamodule=dm)
+        print('Training completed. Best model is :', model_checkpoint_cb.best_model_path)
+        return model_checkpoint_cb.best_model_path
