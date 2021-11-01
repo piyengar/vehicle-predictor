@@ -81,3 +81,7 @@ class BaseDataModule(pl.LightningDataModule):
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size=self.batch_size, num_workers=self.num_workers,)
     
+    def get_test_targets(self) -> List[int]:
+        # TODO enforce this with abc
+        raise NotImplementedError("Please implement this in your subclass")
+        

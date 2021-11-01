@@ -90,3 +90,7 @@ class BrandDataModule(BaseDataModule):
         #     return ds
         else:
             raise ValueError("Dataset not supported")
+        
+    def get_test_targets(self):
+        self.setup('test')
+        return self.test_dataset.targets

@@ -35,7 +35,7 @@ setup(
     install_requires=[
         "pytest",
         "matplotlib",
-        "pytorch",
+        "torch",
         "torchvision",
         "pytorch-lightning",
         "pytorch-lightning-bolts",

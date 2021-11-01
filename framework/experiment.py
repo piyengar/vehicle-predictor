@@ -1,4 +1,6 @@
 import os
+import time
+from typing import List
 import matplotlib.pyplot as plt
 import numpy as np
 import pytorch_lightning as pl
@@ -10,6 +12,8 @@ from torchmetrics.functional import (accuracy, confusion_matrix, f1, precision,
 from abc import ABC, abstractmethod
 from torch.utils.data import DataLoader
 
+from framework.datamodule import BaseDataModule
+
 from .datasets import Datasets
 from .prediction_writer import PredictionWriter
 
@@ -17,56 +21,55 @@ class BaseExperiment(ABC):
     prediction_root= 'predictions'
     checkpoints_root= 'checkpoints'
     
-    @classmethod
     @abstractmethod
-    def get_eval_data_module(self) -> pl.LightningDataModule:
+    def get_eval_data_module(self) -> BaseDataModule:
         pass
     
-    @classmethod
     @abstractmethod
-    def get_train_data_module(self) -> pl.LightningDataModule:
+    def get_train_data_module(self) -> BaseDataModule:
         pass
     
-    @classmethod
     @abstractmethod
     def train(self) -> str:
         pass
     
-    @classmethod
     @abstractmethod
-    def get_eval_trainer(self, predict_callback: PredictionWriter):
+    def get_eval_trainer(self, predict_callback: PredictionWriter) -> pl.Trainer:
         # return pl.Trainer(
         #     gpus=gpus, progress_bar_refresh_rate=20, callbacks=[predict_callback]
         # )
         pass
     
-    @classmethod
     @abstractmethod
     def get_model(self):
         pass
     
-    @classmethod
     @abstractmethod
     def get_model_from_checkpoint(self, model_checkpoint_file: str) -> pl.LightningModule:
         pass
     
-    @classmethod
     @abstractmethod
-    def get_target_names(self) -> pl.LightningModule:
+    def get_target_names(self) -> List[str]:
         pass
     
-    @classmethod
+    def get_prediction_root(self) -> str:
+        return "predictions"
+    
+    def get_checkpoint_root(self) -> str:
+        return "checkpoints"
+    
     @abstractmethod
     def get_name(self) -> str:
         """
         Returns a name for the experiment.
-        Sub classes should ensure that the name does not have and spaces in it as it will be used in path-like scenarios. 
+        Sub classes should ensure that the name does not have any spaces in it as it will be used in path-like scenarios. 
         """
         pass
     
-    def get_prediction_path(self, test_dataset: Datasets, model_checkpoint_file: str) -> str:
-        prediction_file_name = os.path.splitext(model_checkpoint_file)[0]+'.txt'
-        return os.path.join(self.prediction_root, self.get_name(), f'{test_dataset.name}_{prediction_file_name}')
+    def get_prediction_path(self, test_dataset: Datasets, model_checkpoint_path: str) -> str:
+        _, model_checkpoint_file = os.path.split(model_checkpoint_path)
+        prediction_file_name = os.path.splitext(model_checkpoint_file)[0]+f'_{time.time()}.txt'
+        return os.path.join(self.get_prediction_root(), self.get_name(), f'{test_dataset.name}_{prediction_file_name}')
     
     def get_model_checkpoint_path(self, model_checkpoint_file: str) -> str:
         """
@@ -81,40 +84,44 @@ class BaseExperiment(ABC):
         return os.path.join(self.checkpoints_root, self.get_name(), model_checkpoint_file)
     
     def predict_and_persist(self,
-        model_checkpoint_file: str,
+        model_checkpoint_path: str,
         test_dataset: Datasets,
         batch_size: int,
     ):
+        predictions_file_path = self.get_prediction_path(test_dataset, model_checkpoint_path)
         prediction_writer = PredictionWriter(
             write_interval="batch",
-            out_file_name=self.get_prediction_path(test_dataset, model_checkpoint_file),
+            out_file_name=predictions_file_path,
         )
         # datamodule
         dm = self.get_eval_data_module()
         # init model from checkpoint
-        model = self.get_model_from_checkpoint(model_checkpoint_file)
+        model = self.get_model_from_checkpoint(model_checkpoint_path)
         # init trainer
         trainer = self.get_eval_trainer(prediction_writer)
         dm.setup("test")
         dl = DataLoader(dm.test_dataset, batch_size=batch_size)
         trainer.predict(model, dataloaders=dl)
+        return predictions_file_path
     
     def evaluate_predictions(
         self,
-        model_checkpoint_file: str,
+        predictions_file_path: str,
         test_dataset: Datasets,
     ):
 
-        prediction_out_file_path = self.get_prediction_path(test_dataset, model_checkpoint_file)
         # load dataset with ground truth
         dm_gt = self.get_eval_data_module()
         dm_gt.setup("test")
         # gt will be indexed based on the dataset
-        print(f"{test_dataset.name} using {model_checkpoint_file}")
-        targets = dm_gt.test_dataset.targets
+        print(f"Evaluating {test_dataset.name} using {predictions_file_path}")
+        
+        # TODO need to delegate access to the datamodule
+        targets = dm_gt.get_test_targets()
+        
         gt = np.array(targets)
         gt = torch.from_numpy(gt)
-        predictions = np.loadtxt(prediction_out_file_path, dtype=int)
+        predictions = np.loadtxt(predictions_file_path, dtype=int)
         predictions = torch.from_numpy(predictions)
         target_names = self.get_target_names()
         avg_met = "weighted"
@@ -134,8 +141,9 @@ class BaseExperiment(ABC):
         cm.plot(
             cmap=plt.cm.Blues,
             values_format=".2f",
+            xticks_rotation='vertical'
         )
-        plt.show()
+        # plt.savefig())
 
         return accuracy_val, precision_val, f1_val, recall_val
 
