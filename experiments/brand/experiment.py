@@ -15,6 +15,8 @@ from pytorch_lightning.callbacks import (
     model_checkpoint,
 )
 
+from framework.prediction_writer import PredictionWriter
+
 
 class BrandExperiment(BaseExperiment):
     def __init__(
@@ -87,12 +89,20 @@ class BrandExperiment(BaseExperiment):
             batch_size=self.batch_size,
             img_size=self.img_size,
             train_split=self.train_split,
-            allowed_target_names=self.class_names,
+            allowed_target_names=self.class_names,  
             num_workers=self.num_workers,
         )
         
     def get_target_names(self) -> List[str]:
         return self.get_eval_data_module().get_test_targets()
+    
+    def get_eval_trainer(self, predict_callback: PredictionWriter) -> pl.Trainer:
+        return pl.Trainer(
+            gpus=self.gpus, progress_bar_refresh_rate=20, callbacks=[predict_callback]
+        )
+        
+    def get_model_from_checkpoint(self, model_checkpoint_file: str) -> pl.LightningModule:
+        return self.get_model().load_from_checkpoint(model_checkpoint_file)
 
     def train(self) -> str:
         # init model
