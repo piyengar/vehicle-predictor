@@ -14,7 +14,7 @@ class PredictionWriter(BasePredictionWriter):
     ):
         super().__init__(write_interval)
         self.file_path = out_file_name
-        os.makedirs(self.output_dir, exist_ok=True)
+        os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
         with open(self.file_path, mode="w") as writer:
             writer.truncate()
 
