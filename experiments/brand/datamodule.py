@@ -24,11 +24,11 @@ from .dataset import (
 class BrandDataModule(BaseDataModule):
     def _get_dataset(
         self,
-        dataset_name: Datasets = Datasets.VEHICLE_ID,
+        dataset: Datasets = Datasets.VEHICLE_ID,
         stage: Optional[str] = None,
     ):
         allowed_brand_list = list(map(lambda x: Brand[x], self.allowed_target_names))
-        if dataset_name == Datasets.VEHICLE_ID:
+        if dataset == Datasets.VEHICLE_ID:
             return VehicleIDDataset(
                 os.path.join(self.data_dir, "VehicleID"),
                 data_transform=self.transform,
@@ -41,7 +41,7 @@ class BrandDataModule(BaseDataModule):
         #         data_transform=self.transform,
         #         with_predictions=self.with_predictions,
         #     )
-        elif dataset_name == Datasets.CARS196:
+        elif dataset == Datasets.CARS196:
             return Cars196Dataset(
                 os.path.join(self.data_dir, "Cars196"),
                 data_transform=self.transform,
@@ -95,4 +95,10 @@ class BrandDataModule(BaseDataModule):
         
     def get_test_targets(self):
         self.setup('test')
-        return self.test_dataset.targets
+        if self.dataset_type == Datasets.VEHICLE_ID:
+            return self.test_dataset.brands
+        elif self.dataset_type == Datasets.CARS196:
+            return self.test_dataset.brands
+        else:
+            raise ValueError("Dataset not supported")
+            

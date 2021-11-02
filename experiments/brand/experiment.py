@@ -136,6 +136,7 @@ class BrandExperiment(BaseExperiment):
         print(
             "Training completed. Best model is :", model_checkpoint_cb.best_model_path
         )
+        self.model_checkpoint_file = model_checkpoint_cb.best_model_path
         return model_checkpoint_cb.best_model_path
 
     @staticmethod
@@ -172,8 +173,8 @@ class BrandExperiment(BaseExperiment):
         parser.add_argument("--model_checkpoint_file", type=str, default=None),
         return parser
     
-    def predict_and_persist(self, model_checkpoint_path: str):
-        return super().predict_and_persist(model_checkpoint_path, self.test_dataset, self.batch_size)
+    def predict_and_persist(self):
+        return super().predict_and_persist(self.model_checkpoint_file, self.test_dataset, self.batch_size)
     
     def evaluate_predictions(self, predictions_file_path: str):
         return super().evaluate_predictions(predictions_file_path, self.test_dataset)
