@@ -22,7 +22,7 @@ class BrandExperiment(BaseExperiment):
     def __init__(
         self,
         class_names: List[str],
-        model_arch: str,
+        model_arch: str = "resnet18",
         learning_rate: float = 0.001,
         lr_step=1,
         lr_step_factor=0.9,
@@ -39,6 +39,7 @@ class BrandExperiment(BaseExperiment):
         is_dev_run: bool = False,
         max_epochs: int = 10,
         model_checkpoint_file: str = None,
+        **kwargs,
     ) -> None:
         self.class_names = class_names
         self.model_arch = model_arch

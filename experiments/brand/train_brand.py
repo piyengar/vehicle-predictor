@@ -4,7 +4,7 @@ from experiments.brand.experiment import BrandExperiment
 from experiments.brand.dataset.brand import Brand
 
 def run_experiment(args):
-    allowed_brand_list = map(lambda x: x.name, [
+    allowed_brand_list = list(map(lambda x: x.name, [
         Brand.HYUNDAI,
         Brand.VOLKSWAGEN,
         Brand.BUICK,
@@ -15,8 +15,8 @@ def run_experiment(args):
         Brand.TOYOTA,
         Brand.AUDI,
         Brand.HONDA,
-    ])
-    exp = BrandExperiment(class_names=allowed_brand_list, **args)
+    ]))
+    exp = BrandExperiment(class_names=allowed_brand_list, **vars(args))
     best_model = exp.train()
     prediction_path = exp.predict_and_persist(best_model)
     exp.evaluate_predictions(prediction_path)
