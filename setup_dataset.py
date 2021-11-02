@@ -83,7 +83,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    print(args)
+    # print(args)
     # download the archive
     if args.command == COMMAND_DOWNLOAD:
         download_dataset(args.dataset_name, args.source, args.archive_folder)
