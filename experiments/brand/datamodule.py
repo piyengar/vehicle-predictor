@@ -6,6 +6,7 @@ import pytorch_lightning as pl
 # from pl_bolts.datasets import DummyDataset
 from torch.utils.data import ConcatDataset, DataLoader, random_split
 from torchvision import transforms
+from experiments.brand.dataset.brand import Brand
 
 from framework.datamodule import BaseDataModule
 from framework.datasets import Datasets
@@ -26,12 +27,13 @@ class BrandDataModule(BaseDataModule):
         dataset_name: Datasets = Datasets.VEHICLE_ID,
         stage: Optional[str] = None,
     ):
+        allowed_brand_list = map(lambda x: Brand[x], self.allowed_target_names)
         if dataset_name == Datasets.VEHICLE_ID:
             return VehicleIDDataset(
                 os.path.join(self.data_dir, "VehicleID"),
                 data_transform=self.transform,
                 stage=stage,
-                allowed_brand_list=self.allowed_target_names,
+                allowed_brand_list=allowed_brand_list,
             )
         # elif dataset_name == Datasets.VRIC:
         #     return VRICDataset(
@@ -44,7 +46,7 @@ class BrandDataModule(BaseDataModule):
                 os.path.join(self.data_dir, "Cars196"),
                 data_transform=self.transform,
                 stage=stage,
-                allowed_brand_list=self.allowed_target_names,
+                allowed_brand_list=allowed_brand_list,
             )
         # elif dataset_name == Datasets.BOXCARS116K:
         #     return BoxCars116kDataset(
@@ -58,7 +60,7 @@ class BrandDataModule(BaseDataModule):
         #         data_transform=self.transform,
         #         stage=stage,
         #         prediction_file=self.prediction_file,
-        #         allowed_brand_list=self.allowed_target_names,
+        #         allowed_brand_list=allowed_brand_list,
         #     )
         # elif dataset_name == Datasets.VERI:
         #     return VeriDataset(
@@ -66,7 +68,7 @@ class BrandDataModule(BaseDataModule):
         #         data_transform=self.transform,
         #         stage=stage,
         #         prediction_file=self.prediction_file,
-        #         allowed_brand_list=self.allowed_target_names,
+        #         allowed_brand_list=allowed_brand_list,
         #     )
         # elif dataset_name == Datasets.COMBINED:
         #     # import types
