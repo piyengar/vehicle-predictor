@@ -95,7 +95,7 @@ class BrandExperiment(BaseExperiment):
         )
         
     def get_target_names(self) -> List[str]:
-        return self.get_eval_data_module().get_test_targets()
+        return self.class_names
     
     def get_eval_trainer(self, predict_callback: PredictionWriter) -> pl.Trainer:
         return pl.Trainer(
