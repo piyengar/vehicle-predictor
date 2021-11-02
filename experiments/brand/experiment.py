@@ -90,6 +90,9 @@ class BrandExperiment(BaseExperiment):
             allowed_target_names=self.class_names,
             num_workers=self.num_workers,
         )
+        
+    def get_target_names(self) -> List[str]:
+        return self.get_eval_data_module().get_test_targets()
 
     def train(self) -> str:
         # init model
