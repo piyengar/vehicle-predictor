@@ -108,7 +108,7 @@ class BrandExperiment(BaseExperiment):
         # init model
         model = self.get_model()
         # init datamodule
-        dm = self.get_train_data_module(self.train_dataset)
+        dm = self.get_train_data_module()
         # callbacks
         model_checkpoint_cb = ModelCheckpoint(monitor="val_acc", mode="max")
         callbacks = [
