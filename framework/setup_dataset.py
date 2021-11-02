@@ -6,6 +6,12 @@ from enum import Enum, auto
 import gdown
 from .datasets import Datasets
 
+def ensure_folder(path: str):
+    if (os.path.exists(path) and os.path.isdir(path)) or not os.path.exists(path):
+        return path if path.endswith(os.path.os.sep) else f"{path}{os.path.sep}"
+    else:
+        raise NotADirectoryError(path)
+
 def setup_dataset(dataset: Datasets, dataset_src_root:str= 'dataset_source', dest_dir:str = 'dataset'):
     if dataset == Datasets.COMP_CARS:
         os.makedirs(os.path.join(dest_dir), exist_ok=True)
@@ -61,4 +67,4 @@ def download_dataset(dataset: Datasets, source: str = 'gdrive', temp_folder:str 
         elif dataset == Datasets.BOXCARS116K:
             files.append('https://drive.google.com/file/d/17WODwYLOIwZDK-yA1vzxS6shf2XPBAkL/view?usp=sharing')
         for file in files:
-            gdown.download(fuzzy=True, url=file, output=temp_folder)
+            gdown.download(fuzzy=True, url=file, output=ensure_folder(temp_folder))

@@ -55,7 +55,7 @@ if __name__ == "__main__":
         "--dest",
         "-d",
         help="Folder where the downloaded archive files will be stored",
-        default="./dataset_source/",
+        default="./dataset_source",
         dest="archive_folder",
         type=ensure_folder
     )
