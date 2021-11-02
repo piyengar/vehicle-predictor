@@ -17,9 +17,9 @@ def run_experiment(args):
         Brand.HONDA,
     ]))
     exp = BrandExperiment(class_names=allowed_brand_list, **vars(args))
-    best_model = exp.train()
-    prediction_path = exp.predict_and_persist(best_model)
-    exp.evaluate_predictions(prediction_path)
+    exp.train()
+    # prediction_path = exp.predict_and_persist()
+    # exp.evaluate_predictions(prediction_path)
     
 
 if __name__=="__main__":

@@ -39,6 +39,7 @@ class BrandExperiment(BaseExperiment):
         is_dev_run: bool = False,
         max_epochs: int = 10,
         model_checkpoint_file: str = None,
+        prediction_file_path: str = None,
         **kwargs,
     ) -> None:
         self.class_names = class_names
@@ -59,6 +60,7 @@ class BrandExperiment(BaseExperiment):
         self.is_dev_run = is_dev_run
         self.max_epochs = max_epochs
         self.model_checkpoint_file = model_checkpoint_file
+        self.prediction_file_path = prediction_file_path
 
     def get_name(self):
         return "brand"
@@ -171,10 +173,13 @@ class BrandExperiment(BaseExperiment):
         parser.add_argument("--is_dev_run", type=bool, default=False),
         parser.add_argument("--max_epochs", type=int, default=10),
         parser.add_argument("--model_checkpoint_file", type=str, default=None),
+        parser.add_argument("--prediction_file_path", type=str, default=None),
         return parser
     
     def predict_and_persist(self):
-        return super().predict_and_persist(self.model_checkpoint_file, self.test_dataset, self.batch_size)
+        self.prediction_file_path = super().predict_and_persist(self.model_checkpoint_file, self.test_dataset, self.batch_size)
+        print('Predictions stored at : ', self.prediction_file_path)
+        return self.prediction_file_path
     
-    def evaluate_predictions(self, predictions_file_path: str):
-        return super().evaluate_predictions(predictions_file_path, self.test_dataset)
+    def evaluate_predictions(self):
+        return super().evaluate_predictions(self.prediction_file_path, self.test_dataset)
