@@ -104,13 +104,15 @@ class BrandDataModule(BaseDataModule):
             
             
     def get_train_stats(self) -> Dict[str, int]:
+        self.setup('fit')
         return self._get_dataset_stats(self.train_dataset)
     
     def get_test_stats(self) -> Dict[str, int]:
+        self.setup('test')
         return self._get_dataset_stats(self.test_dataset)
     
-    def _get_dataset_stats(self, dataset):
-        if dataset in [Datasets.VEHICLE_ID]:
+    def _get_dataset_stats(self, dataset: BrandDataset):
+        if self.dataset_type in [Datasets.VEHICLE_ID]:
             counts = dataset.get_brand_counts()
             counts = sorted(counts, key= lambda ct: ct[1], reverse=True)
             data = {}
