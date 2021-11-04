@@ -84,10 +84,10 @@ class BaseExperiment(ABC):
         raise NotImplementedError()
     
     def get_train_stats(self) -> Dict[str, int]:
-        raise NotImplementedError()
+        return self.get_train_data_module().get_train_stats()
         
     def get_test_stats(self) -> Dict[str, int]:
-        raise NotImplementedError()
+        return self.get_eval_data_module().get_test_stats()
         
     
     @abstractmethod
