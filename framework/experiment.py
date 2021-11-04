@@ -135,17 +135,26 @@ class BaseExperiment(ABC):
         print(f"The f1 is {f1_val}")
         print(f"The recall is {recall_val}")
 
-        # print confusion matrix
+        # confusion matrix
         cm = confusion_matrix(predictions, gt, num_classes, "true")
-        cm = ConfusionMatrixDisplay(cm.numpy(), display_labels=target_names)
-        cm.plot(
-            cmap=plt.cm.Blues,
-            values_format=".2f",
-            xticks_rotation='vertical'
-        )
+        
+        pred_dir, pred_file = os.path.split(predictions_file_path)
+        eval_results_file_name = os.path.splitext(pred_file)[0]+f'_eval.txt'
+        cm_results_file_name = os.path.splitext(pred_file)[0]+f'_cm.npy'
+        eval_results_file_path = os.path.join(pred_dir, eval_results_file_name)
+        cm_results_file_path = os.path.join(pred_dir, cm_results_file_name)
+        
+        with open(eval_results_file_path, mode="w") as writer:
+            writer.write(target_names)
+            writer.write(accuracy_val)
+            writer.write(precision_val)
+            writer.write(f1_val)
+            writer.write(recall_val)
+        with open(cm_results_file_path, mode="wb") as writer:
+            np.save(writer, cm.numpy())
         # plt.savefig())
 
-        return accuracy_val, precision_val, f1_val, recall_val
+        return accuracy_val, precision_val, f1_val, recall_val, cm
 
     
     
