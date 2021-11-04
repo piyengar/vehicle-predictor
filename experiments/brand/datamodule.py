@@ -1,12 +1,12 @@
 import os
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import pytorch_lightning as pl
 
 # from pl_bolts.datasets import DummyDataset
 from torch.utils.data import ConcatDataset, DataLoader, random_split
 from torchvision import transforms
-from experiments.brand.dataset.brand import Brand
+from experiments.brand.dataset.brand import Brand, BrandDataset
 
 from framework.datamodule import BaseDataModule
 from framework.datasets import Datasets
@@ -99,6 +99,24 @@ class BrandDataModule(BaseDataModule):
             return self.test_dataset.brands
         elif self.dataset_type == Datasets.CARS196:
             return self.test_dataset.brands
+        else:
+            raise ValueError("Dataset not supported")
+            
+            
+    def get_train_stats(self) -> Dict[str, int]:
+        return self._get_dataset_stats(self.train_dataset)
+    
+    def get_test_stats(self) -> Dict[str, int]:
+        return self._get_dataset_stats(self.test_dataset)
+    
+    def _get_dataset_stats(self, dataset):
+        if dataset in [Datasets.VEHICLE_ID]:
+            counts = dataset.get_brand_counts()
+            counts = sorted(counts, key= lambda ct: ct[1], reverse=True)
+            data = {}
+            for ct in counts:
+                data[ct[1]] = int(ct[2])
+            return data
         else:
             raise ValueError("Dataset not supported")
             

@@ -1,6 +1,6 @@
 import os
 from argparse import ArgumentParser
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import pytorch_lightning as pl
 
@@ -85,3 +85,8 @@ class BaseDataModule(pl.LightningDataModule):
         # TODO enforce this with abc
         raise NotImplementedError("Please implement this in your subclass")
         
+    def get_train_stats(self) -> Dict[str, int]:
+        raise NotImplementedError("Please implement this in your subclass")
+    
+    def get_test_stats(self) -> Dict[str, int]:
+        raise NotImplementedError("Please implement this in your subclass")
