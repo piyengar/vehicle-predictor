@@ -1,22 +1,44 @@
+import enum
 import os
 import time
-from typing import List
+from abc import ABC, abstractmethod
+from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
+from enum import Enum, auto
+from typing import Dict, List
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pytorch_lightning as pl
 import torch
-from sklearn.metrics import ConfusionMatrixDisplay
 from torch.utils.data import DataLoader
 from torchmetrics.functional import (accuracy, confusion_matrix, f1, precision,
                                      recall)
-from abc import ABC, abstractmethod
-from torch.utils.data import DataLoader
 
 from framework.datamodule import BaseDataModule
 
 from .datasets import Datasets
 from .prediction_writer import PredictionWriter
 
+
+class Command(Enum):
+    train_stats = auto(),
+    test_stats = auto(),
+    tune = auto(),
+    train = auto(),
+    predict = auto(),
+    evaluate = auto(),
+    
+    def __str__(self):
+        return self.name
+    
+    @staticmethod
+    def from_string(s):
+        try:
+            return Datasets[s]
+        except KeyError:
+            raise ValueError()
+        
+        
 class BaseExperiment(ABC):
     prediction_root= 'predictions'
     checkpoints_root= 'checkpoints'
@@ -57,6 +79,16 @@ class BaseExperiment(ABC):
     
     def get_checkpoint_root(self) -> str:
         return "checkpoints"
+    
+    def tune_learning_rate(self) -> float:
+        raise NotImplementedError()
+    
+    def get_train_stats(self) -> Dict[str, int]:
+        raise NotImplementedError()
+        
+    def get_test_stats(self) -> Dict[str, int]:
+        raise NotImplementedError()
+        
     
     @abstractmethod
     def get_name(self) -> str:
@@ -156,5 +188,42 @@ class BaseExperiment(ABC):
 
         return accuracy_val, precision_val, f1_val, recall_val, cm
 
-    
+    @staticmethod
+    def add_parser_args(parent_parser: ArgumentParser):
+        parser = ArgumentParser(parents=[parent_parser], add_help=False,
+                                formatter_class=ArgumentDefaultsHelpFormatter,
+                                )
+        parser.add_argument('commands', nargs='+', choices=list(Command), type=Command.from_string, default=Command.train, 
+                        help="The commands that should be run. Multiple options can be provided separated by spaces. Run priority is :" + " > ".join(list(map(str, Command))))
+        parser.add_argument("--model_arch", type=str, help='The architecture to be used for the model. Depends ont he experiment'),
+        parser.add_argument("--learning_rate", type=float, default=0.001, help='The learning rate for the model'),
+        parser.add_argument("--lr_step", type=int, default=1, help='The number of epochs between each learning rate step'),
+        parser.add_argument("--lr_step_factor", type=float, default=0.9, help='The factor with which the learning rate should be multiplied with at each step'),
+        parser.add_argument("--data_dir", type=str, default="dataset", help='The root folder where the extracted datasets are stored'),
+        parser.add_argument("--batch_size", type=int, default=32, help='Training batch size'),
+        parser.add_argument("--img_size", type=int, default=224, help='The size of the image input into the model. Here we consider H=W'),
+        parser.add_argument("--train_split", type=float, default=0.7, help='The proportion of data to be used for training, rest is used for validation. Between 0-1'),
+        parser.add_argument("--num_workers", type=int, default=1, help='The number of worker threads to be used for loading data'),
+        parser.add_argument(
+            "--train_dataset",
+            type=Datasets.from_string,
+            choices=list(Datasets),
+            default=Datasets.VEHICLE_ID,
+            help='The dataset to be used for training'
+        ),
+        parser.add_argument(
+            "--test_dataset",
+            type=Datasets.from_string,
+            choices=list(Datasets),
+            default=Datasets.VEHICLE_ID,
+            help='The dataset to be used for testing'
+        ),
+        parser.add_argument("--early_stop_patience", type=int, default=3, help='The number of epochs to wait for the observed metric to stop reducing/increasing before stopping training'),
+        parser.add_argument("--early_stop_delta", type=int, default=0.001, help='The minimum observable difference to track'),
+        parser.add_argument("--gpus", type=int, default=-1, help='The number of gpus to use. set to -1 to use all available'),
+        parser.add_argument("--is_dev_run", type=bool, default=False, help='Run only one batch of data during training to test code if True'),
+        parser.add_argument("--max_epochs", type=int, default=10, help="The max number of epochs to train"),
+        parser.add_argument("--model_checkpoint_file", type=str, default=None, help='The model check point file to use during evaluation'),
+        parser.add_argument("--prediction_file_path", type=str, default=None, help='The path were the predictions will be stored in. Should be a full file path'),
+        return parser
     

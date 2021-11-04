@@ -1,6 +1,5 @@
 import os
 from typing import List, Optional
-from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 
 import pytorch_lightning as pl
 from experiments.brand.datamodule import BrandDataModule
@@ -141,41 +140,6 @@ class BrandExperiment(BaseExperiment):
         self.model_checkpoint_file = model_checkpoint_cb.best_model_path
         return model_checkpoint_cb.best_model_path
 
-    @staticmethod
-    def add_parser_args(parent_parser: ArgumentParser):
-        parser = ArgumentParser(parents=[parent_parser], add_help=False,
-                                formatter_class=ArgumentDefaultsHelpFormatter,
-                                )
-        parser.add_argument("--model_arch", type=str),
-        parser.add_argument("--learning_rate", type=float, default=0.001),
-        parser.add_argument("--lr_step", type=int, default=1),
-        parser.add_argument("--lr_step_factor", type=float, default=0.9),
-        parser.add_argument("--data_dir", type=str, default="dataset"),
-        parser.add_argument("--batch_size", type=int, default=32),
-        parser.add_argument("--img_size", type=int, default=224),
-        parser.add_argument("--train_split", type=float, default=0.7),
-        parser.add_argument("--num_workers", type=int, default=1),
-        parser.add_argument(
-            "--train_dataset",
-            type=Datasets.from_string,
-            choices=list(Datasets),
-            default=Datasets.VEHICLE_ID,
-        ),
-        parser.add_argument(
-            "--test_dataset",
-            type=Datasets.from_string,
-            choices=list(Datasets),
-            default=Datasets.VEHICLE_ID,
-        ),
-        parser.add_argument("--early_stop_patience", type=int, default=3),
-        parser.add_argument("--early_stop_delta", type=int, default=0.001),
-        parser.add_argument("--gpus", type=int, default=0),
-        parser.add_argument("--is_dev_run", type=bool, default=False),
-        parser.add_argument("--max_epochs", type=int, default=10),
-        parser.add_argument("--model_checkpoint_file", type=str, default=None),
-        parser.add_argument("--prediction_file_path", type=str, default=None),
-        return parser
-    
     def predict_and_persist(self):
         self.prediction_file_path = super().predict_and_persist(self.model_checkpoint_file, self.test_dataset, self.batch_size)
         print('Predictions stored at : ', self.prediction_file_path)
