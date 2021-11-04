@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import pytorch_lightning as pl
 from experiments.brand.datamodule import BrandDataModule
@@ -94,6 +94,14 @@ class BrandExperiment(BaseExperiment):
             allowed_target_names=self.class_names,  
             num_workers=self.num_workers,
         )
+        
+    def get_train_stats(self) -> Dict[str, int]:
+        counts = self.train_dataset.get_brand_counts()
+        counts = sorted(counts, key= lambda ct: ct[1], reverse=True)
+        data = {}
+        for ct in counts:
+            data[ct[1]] = int(ct[2])
+        return data
         
     def get_target_names(self) -> List[str]:
         return self.class_names

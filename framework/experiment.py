@@ -34,7 +34,7 @@ class Command(Enum):
     @staticmethod
     def from_string(s):
         try:
-            return Datasets[s]
+            return Command[s]
         except KeyError:
             raise ValueError()
         

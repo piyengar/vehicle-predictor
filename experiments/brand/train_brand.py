@@ -18,9 +18,11 @@ def run_experiment(args):
     ]))
     exp = BrandExperiment(class_names=allowed_brand_list, **vars(args))
     if(Command.train_stats in args.commands):
-        exp.get_train_stats()
+        stats = exp.get_train_stats()
+        print(stats)
     if(Command.test_stats in args.commands):
-        exp.get_test_stats()
+        stats = exp.get_test_stats()
+        print(stats)
     if(Command.tune in args.commands):
         exp.tune_learning_rate()
     if(Command.train in args.commands):
