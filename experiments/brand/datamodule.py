@@ -105,7 +105,7 @@ class BrandDataModule(BaseDataModule):
             
     def get_train_stats(self) -> Dict[str, int]:
         self.setup('fit')
-        return self._get_dataset_stats(self.train_dataset)
+        return self._get_dataset_stats(self.train_val_dataset)
     
     def get_test_stats(self) -> Dict[str, int]:
         self.setup('test')
