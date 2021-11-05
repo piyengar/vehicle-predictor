@@ -31,7 +31,7 @@ setup(
     license="MIT",
     keywords="computer-vision",
     packages=find_packages(),
-    python_requires=">= 3.5",
+    python_requires=">= 3.6",
     install_requires=[
         "pytest",
         "matplotlib",
@@ -42,5 +42,6 @@ setup(
         "ipywidgets",
         "torchmetrics",
         "efficientnet_pytorch",
+        "gdown~=4.2.0"
     ]
 )
