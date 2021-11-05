@@ -4,11 +4,14 @@ import time
 from abc import ABC, abstractmethod
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 from enum import Enum, auto
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pytorch_lightning as pl
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+from pytorch_lightning.callbacks.lr_monitor import LearningRateMonitor
+from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 import torch
 from torch.utils.data import DataLoader
 from torchmetrics.functional import (accuracy, confusion_matrix, f1, precision,
@@ -40,8 +43,54 @@ class Command(Enum):
         
         
 class BaseExperiment(ABC):
-    prediction_root= 'predictions'
-    checkpoints_root= 'checkpoints'
+    
+    def __init__(
+        self,
+        class_names: List[str],
+        model_arch: str = "resnet18",
+        learning_rate: float = 0.001,
+        lr_step=1,
+        lr_step_factor=0.9,
+        data_dir: str = "dataset",
+        batch_size: int = 32,
+        img_size: int = 224,
+        train_split=0.7,
+        num_workers=1,
+        train_dataset: Datasets = Datasets.VEHICLE_ID,
+        test_dataset: Datasets = Datasets.VEHICLE_ID,
+        early_stop_patience: int = 3,
+        early_stop_delta: int = 0.001,
+        gpus: Optional[int] = None,
+        is_dev_run: bool = False,
+        max_epochs: int = 10,
+        model_checkpoint_path: str = None,
+        prediction_file_path: str = None,
+        prediction_root: str = 'predictions',
+        checkpoints_root: str = 'checkpoints',
+        **kwargs,
+    ) -> None:
+        self.class_names = class_names
+        self.model_arch = model_arch
+        self.learning_rate = learning_rate
+        self.lr_step = lr_step
+        self.lr_step_factor = lr_step_factor
+        self.data_dir = data_dir
+        self.batch_size = batch_size
+        self.img_size = img_size
+        self.train_split = train_split
+        self.num_workers = num_workers
+        self.train_dataset = train_dataset
+        self.test_dataset = test_dataset
+        self.early_stop_patience = early_stop_patience
+        self.early_stop_delta = early_stop_delta
+        self.gpus = gpus
+        self.is_dev_run = is_dev_run
+        self.max_epochs = max_epochs
+        self.model_checkpoint_path = model_checkpoint_path
+        self.prediction_file_path = prediction_file_path
+        self.prediction_root = prediction_root
+        self.checkpoints_root = checkpoints_root
+        
     
     @abstractmethod
     def get_eval_data_module(self) -> BaseDataModule:
@@ -51,9 +100,40 @@ class BaseExperiment(ABC):
     def get_train_data_module(self) -> BaseDataModule:
         pass
     
-    @abstractmethod
     def train(self) -> str:
-        pass
+        # init model
+        model = self.get_model()
+        # init datamodule
+        dm = self.get_train_data_module()
+        # callbacks
+        model_checkpoint_cb = ModelCheckpoint(monitor="val_acc", mode="max")
+        callbacks = [
+            EarlyStopping(
+                "val_acc",
+                mode="max",
+                patience=self.early_stop_patience,
+                verbose=True,
+                min_delta=self.early_stop_delta,
+            ),
+            LearningRateMonitor(logging_interval="epoch"),
+            model_checkpoint_cb,
+        ]
+        # Initialize a trainer
+        trainer = pl.Trainer(
+            gpus=self.gpus,
+            fast_dev_run=self.is_dev_run,
+            max_epochs=self.max_epochs,
+            progress_bar_refresh_rate=20,
+            default_root_dir=os.path.join(self.checkpoints_root, self.get_name()),
+            callbacks=callbacks,
+        )
+        trainer.fit(model, datamodule=dm)
+        print(
+            "Training completed. Best model is :", model_checkpoint_cb.best_model_path
+        )
+        self.model_checkpoint_path = model_checkpoint_cb.best_model_path
+        return model_checkpoint_cb.best_model_path
+
     
     @abstractmethod
     def get_eval_trainer(self, predict_callback: PredictionWriter) -> pl.Trainer:
@@ -63,22 +143,21 @@ class BaseExperiment(ABC):
         pass
     
     @abstractmethod
-    def get_model(self):
+    def get_model(self) -> pl.LightningModule:
         pass
     
-    @abstractmethod
     def get_model_from_checkpoint(self, model_checkpoint_file: str) -> pl.LightningModule:
-        pass
+        return self.get_model().load_from_checkpoint(model_checkpoint_file)
     
     @abstractmethod
     def get_target_names(self) -> List[str]:
         pass
     
     def get_prediction_root(self) -> str:
-        return "predictions"
+        return self.prediction_root
     
     def get_checkpoint_root(self) -> str:
-        return "checkpoints"
+        return self.checkpoints_root
     
     def tune_learning_rate(self) -> float:
         raise NotImplementedError()
@@ -103,27 +182,15 @@ class BaseExperiment(ABC):
         prediction_file_name = os.path.splitext(model_checkpoint_file)[0]+f'_{time.time()}.txt'
         return os.path.join(self.get_prediction_root(), self.get_name(), f'{test_dataset.name}_{prediction_file_name}')
     
-    def get_model_checkpoint_path(self, model_checkpoint_file: str) -> str:
-        """
-        We assume that the model exists within the checkpoints/<experiment_name> folder and return the full path to the checkpoint
-
-        Args:
-            model_checkpoint_file (str): The file name of the model checkpoint
-
-        Returns:
-            str: The path to the model checkpoint as per convention
-        """
-        return os.path.join(self.checkpoints_root, self.get_name(), model_checkpoint_file)
-    
     def predict_and_persist(self,
-        model_checkpoint_path: str,
-        test_dataset: Datasets,
-        batch_size: int,
     ):
-        predictions_file_path = self.get_prediction_path(test_dataset, model_checkpoint_path)
+        model_checkpoint_path = self.model_checkpoint_path
+        test_dataset = self.test_dataset
+        batch_size = self.batch_size
+        self.predictions_file_path = self.predictions_file_path or self.get_prediction_path(test_dataset, model_checkpoint_path)
         prediction_writer = PredictionWriter(
             write_interval="batch",
-            out_file_name=predictions_file_path,
+            out_file_name=self.predictions_file_path,
         )
         # datamodule
         dm = self.get_eval_data_module()
@@ -134,13 +201,14 @@ class BaseExperiment(ABC):
         dm.setup("test")
         dl = DataLoader(dm.test_dataset, batch_size=batch_size)
         trainer.predict(model, dataloaders=dl)
-        return predictions_file_path
+        print('Predictions stored at : ', self.prediction_file_path)
+        return self.predictions_file_path
     
     def evaluate_predictions(
         self,
-        predictions_file_path: str,
-        test_dataset: Datasets,
     ):
+        predictions_file_path = self.predictions_file_path
+        test_dataset = self.test_dataset
 
         # load dataset with ground truth
         dm_gt = self.get_eval_data_module()
@@ -148,7 +216,6 @@ class BaseExperiment(ABC):
         # gt will be indexed based on the dataset
         print(f"Evaluating {test_dataset.name} using {predictions_file_path}")
         
-        # TODO need to delegate access to the datamodule
         targets = dm_gt.get_test_targets()
         
         gt = np.array(targets)
@@ -223,7 +290,7 @@ class BaseExperiment(ABC):
         parser.add_argument("--gpus", type=int, default=-1, help='The number of gpus to use. set to -1 to use all available'),
         parser.add_argument("--is_dev_run", type=bool, default=False, help='Run only one batch of data during training to test code if True'),
         parser.add_argument("--max_epochs", type=int, default=10, help="The max number of epochs to train"),
-        parser.add_argument("--model_checkpoint_file", type=str, default=None, help='The model check point file to use during evaluation'),
-        parser.add_argument("--prediction_file_path", type=str, default=None, help='The path were the predictions will be stored in. Should be a full file path'),
+        parser.add_argument("--model_checkpoint_path", type=str, default=None, help='The model checkpoint file (.ckpt) to use during evaluation'),
+        parser.add_argument("--prediction_file_path", type=str, default=None, help='The path were the predictions will be stored in. Should be a full file path.'),
         return parser
     

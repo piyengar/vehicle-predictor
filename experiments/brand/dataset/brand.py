@@ -98,6 +98,16 @@ class Brand(IntEnum):
     @staticmethod
     def list():
         return list(map(lambda c: c.value, Brand))
+    
+    def __str__(self):
+        return self.name
+    
+    @staticmethod
+    def from_string(s):
+        try:
+            return Brand[s]
+        except KeyError:
+            raise ValueError()
 
 # Superclass for Datasets
 class BrandDataset(Dataset):
