@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import pytorch_lightning as pl
 
@@ -7,110 +7,57 @@ import pytorch_lightning as pl
 from torch.utils.data import ConcatDataset, DataLoader, random_split
 from torchvision import transforms
 
-from . import TypeDatasets
+from framework.datamodule import BaseDataModule
+from framework.datasets import Datasets
+
 from .dataset import (
     BoxCars116kDataset,
-    Cars196Dataset,
+    # Cars196Dataset,
     CompCarsDataset,
     VehicleIDDataset,
     VeriDataset,
-    VRICDataset,
+    # VRICDataset,
     Type,
+    TypeDataset,
 )
 
 
-class TypeDataModule(pl.LightningDataModule):
-    def __init__(
-        self,
-        dataset_type: TypeDatasets = TypeDatasets.VERI,
-        data_dir: str = "dataset",
-        batch_size: int = 32,
-        img_size: int = 224,
-        train_split=0.7,
-        with_predictions=False,
-        prediction_file=None,
-        allowed_type_list: List[Type] = None,
-        num_workers=1,
-    ):
-        super().__init__()
-        self.dataset_type = dataset_type
-        self.data_dir = data_dir
-        self.train_split = train_split
-        # we normalize according to ImageNet stats
-        normalize = transforms.Normalize(
-            mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-        )
-        # if not with_predictions:
-        self.transform = transforms.Compose(
-            [transforms.Resize((img_size, img_size)), transforms.ToTensor(), normalize]
-        )
-        # else:
-        #     self.transform = None
-        self.batch_size = batch_size
-        self.with_predictions = with_predictions
-        self.prediction_file = prediction_file
-        self.num_workers = num_workers
-
-        self.train_dataset = None
-        self.val_dataset = None
-        self.test_dataset = None
-        self.predict_dataset = None
-        self.allowed_type_list = allowed_type_list
-
+class TypeDataModule(BaseDataModule):
     def _get_dataset(
         self,
-        dataset_name: TypeDatasets = TypeDatasets.VERI,
+        dataset: Datasets = Datasets.VEHICLE_ID,
         stage: Optional[str] = None,
     ):
-        if dataset_name == TypeDatasets.VRIC:
-            return VRICDataset(
-                os.path.join(self.data_dir, "VRIC"),
-                data_transform=self.transform,
-                stage=stage,
-                prediction_file=self.prediction_file,
-                allowed_type_list=self.allowed_type_list,
-            )
-        elif dataset_name == TypeDatasets.CARS196:
-            return Cars196Dataset(
-                os.path.join(self.data_dir, "Cars196"),
-                data_transform=self.transform,
-                stage=stage,
-                prediction_file=self.prediction_file,
-                allowed_type_list=self.allowed_type_list,
-            )
-        elif dataset_name == TypeDatasets.BOXCARS116K:
+        allowed_type_list = list(map(lambda x: Type[x], self.allowed_target_names))
+        if dataset == Datasets.BOXCARS116K:
             return BoxCars116kDataset(
                 os.path.join(self.data_dir, "BoxCars116k"),
                 data_transform=self.transform,
                 stage=stage,
-                prediction_file=self.prediction_file,
-                allowed_type_list=self.allowed_type_list,
+                allowed_type_list=allowed_type_list,
             )
-        elif dataset_name == TypeDatasets.VEHICLE_ID:
+        elif dataset == Datasets.VEHICLE_ID:
             return VehicleIDDataset(
                 os.path.join(self.data_dir, "VehicleID"),
                 data_transform=self.transform,
                 stage=stage,
-                prediction_file=self.prediction_file,
-                allowed_type_list=self.allowed_type_list,
+                allowed_type_list=allowed_type_list,
             )
-        elif dataset_name == TypeDatasets.COMP_CARS:
+        elif dataset == Datasets.COMP_CARS:
             return CompCarsDataset(
                 os.path.join(self.data_dir, "CompCars", "sv_data"),
                 data_transform=self.transform,
                 stage=stage,
-                prediction_file=self.prediction_file,
-                allowed_type_list=self.allowed_type_list,
+                allowed_type_list=allowed_type_list,
             )
-        elif dataset_name == TypeDatasets.VERI:
+        elif dataset == Datasets.VERI:
             return VeriDataset(
                 os.path.join(self.data_dir, "VeRi_with_plate"),
                 data_transform=self.transform,
                 stage=stage,
-                prediction_file=self.prediction_file,
-                allowed_type_list=self.allowed_type_list,
+                allowed_type_list=allowed_type_list,
             )
-        elif dataset_name == TypeDatasets.COMBINED:
+        elif dataset == Datasets.COMBINED:
             # import types
             # from collections import Counter
             # from operator import add
@@ -118,10 +65,10 @@ class TypeDataModule(pl.LightningDataModule):
 
             ds = ConcatDataset(
                 [
-                    self._get_dataset(TypeDatasets.VERI, stage),
-                    self._get_dataset(TypeDatasets.VEHICLE_ID, stage),
-                    self._get_dataset(TypeDatasets.COMP_CARS, stage),
-                    self._get_dataset(TypeDatasets.BOXCARS116K, stage),
+                    self._get_dataset(Datasets.VERI, stage),
+                    self._get_dataset(Datasets.VEHICLE_ID, stage),
+                    self._get_dataset(Datasets.COMP_CARS, stage),
+                    self._get_dataset(Datasets.BOXCARS116K, stage),
                 ]
             )
             # def get_color_counts(self):
@@ -133,45 +80,36 @@ class TypeDataModule(pl.LightningDataModule):
             return ds
         else:
             raise ValueError("Dataset not supported")
-
-    def setup(self, stage: Optional[str] = None):
-        # Assign train/val datasets for use in dataloaders
-        if stage == "fit" or stage is None:
-            self.train_val_dataset = self._get_dataset(self.dataset_type, "train")
-            ds_len = len(self.train_val_dataset)
-            train_len = int(ds_len * self.train_split)
-            val_len = ds_len - train_len
-            self.train_dataset, self.val_dataset = random_split(
-                self.train_val_dataset, [train_len, val_len]
-            )
-
-            # Optionally...
-            # self.dims = tuple(self.mnist_train[0][0].shape)
-
-        # Assign test dataset for use in dataloader(s)
-        if stage == "test" or stage is None:
-            self.test_dataset = self._get_dataset(self.dataset_type, "test")
-        if stage == "predict" or stage is None:
-            self.predict_dataset = self._get_dataset(self.dataset_type, "predict")
-
-    def predict_dataloader(self):
-        return DataLoader(
-            self.predict_dataset,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-        )
-
-    def train_dataloader(self):
-        return DataLoader(
-            self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers
-        )
-
-    def val_dataloader(self):
-        return DataLoader(
-            self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers
-        )
-
-    def test_dataloader(self):
-        return DataLoader(
-            self.test_dataset, batch_size=self.batch_size, num_workers=self.num_workers
-        )
+        
+    def get_test_targets(self):
+        self.setup('test')
+        if self.dataset_type in [
+            Datasets.VERI,
+            Datasets.VEHICLE_ID, 
+            Datasets.COMP_CARS,
+            Datasets.BOXCARS116K,
+        ]:
+            return self.test_dataset.types
+        else:
+            raise ValueError("Dataset not supported")
+            
+            
+    def get_train_stats(self) -> Dict[str, int]:
+        self.setup('fit')
+        return self._get_dataset_stats(self.train_val_dataset)
+    
+    def get_test_stats(self) -> Dict[str, int]:
+        self.setup('test')
+        return self._get_dataset_stats(self.test_dataset)
+    
+    def _get_dataset_stats(self, dataset: TypeDataset):
+        if self.dataset_type in [Datasets.VEHICLE_ID]:
+            counts = dataset.get_type_counts()
+            counts = sorted(counts, key= lambda ct: ct[1], reverse=True)
+            data = {}
+            for ct in counts:
+                data[ct[1]] = int(ct[2])
+            return data
+        else:
+            raise ValueError("Dataset not supported")
+            
