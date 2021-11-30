@@ -55,3 +55,6 @@ Not all datasets have all the attributes. See below table for details
 | BoxCars116k     | N   |    Y|
 | VehicleID       | Y   |    N|
 | VRIC            | N   |    N|
+
+## Cloudlab 
+The experiments can be run on cloudlab using the profile `carzam_training_v1`. This profile needs can be deployed on a `c4130` or equivalent type node that has GPU access. The node type has been parameterized and can be set when starting the experiment. This creates a Ubuntu 20.04 node with CUDA and conda/pytorch installed. 
