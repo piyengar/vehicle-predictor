@@ -112,7 +112,7 @@ class BrandDataModule(BaseDataModule):
         return self._get_dataset_stats(self.test_dataset)
     
     def _get_dataset_stats(self, dataset: BrandDataset):
-        if self.dataset_type in [Datasets.VEHICLE_ID]:
+        if self.dataset_type in [Datasets.VEHICLE_ID, Datasets.CARS196]:
             counts = dataset.get_brand_counts()
             counts = sorted(counts, key= lambda ct: ct[1], reverse=True)
             data = {}

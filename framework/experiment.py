@@ -83,7 +83,7 @@ class BaseExperiment(ABC):
         self.test_dataset = test_dataset
         self.early_stop_patience = early_stop_patience
         self.early_stop_delta = early_stop_delta
-        self.gpus = gpus
+        self.gpus = gpus if torch.cuda.is_available() else None
         self.is_dev_run = is_dev_run
         self.max_epochs = max_epochs
         self.model_checkpoint_path = model_checkpoint_path
@@ -160,7 +160,13 @@ class BaseExperiment(ABC):
         return self.checkpoints_root
     
     def tune_learning_rate(self) -> float:
-        raise NotImplementedError()
+        trainer = pl.Trainer(
+            gpus=self.gpus, 
+            max_epochs=20, progress_bar_refresh_rate=20, auto_lr_find=True
+            )
+        lr_finder = trainer.tune(self.get_model(),datamodule=self.get_train_data_module())['lr_find']
+        fig = lr_finder.plot(suggest=True)
+        fig.show()
     
     def get_train_stats(self) -> Dict[str, int]:
         return self.get_train_data_module().get_train_stats()
@@ -262,7 +268,7 @@ class BaseExperiment(ABC):
                                 )
         parser.add_argument('commands', nargs='+', choices=list(Command), type=Command.from_string, default=Command.train, 
                         help="The commands that should be run. Multiple options can be provided separated by spaces. Run priority is :" + " > ".join(list(map(str, Command))))
-        parser.add_argument("--model_arch", type=str, help='The architecture to be used for the model. Depends ont he experiment'),
+        parser.add_argument("--model_arch", type=str, help='The architecture to be used for the model. Depends ont he experiment', default="resnet18"),
         parser.add_argument("--learning_rate", type=float, default=0.001, help='The learning rate for the model'),
         parser.add_argument("--lr_step", type=int, default=1, help='The number of epochs between each learning rate step'),
         parser.add_argument("--lr_step_factor", type=float, default=0.9, help='The factor with which the learning rate should be multiplied with at each step'),

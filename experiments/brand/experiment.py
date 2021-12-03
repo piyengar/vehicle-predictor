@@ -25,7 +25,7 @@ class BrandExperiment(BaseExperiment):
         )
 
     def get_train_data_module(self):
-        return BrandDataModule(
+        dm = BrandDataModule(
             dataset_type=self.train_dataset,
             data_dir=self.data_dir,
             batch_size=self.batch_size,
@@ -34,6 +34,7 @@ class BrandExperiment(BaseExperiment):
             allowed_target_names=self.class_names,
             num_workers=self.num_workers,
         )
+        return dm
 
     def get_eval_data_module(self):
         return BrandDataModule(
