@@ -10,5 +10,5 @@ dependencies:
 - matplotlib
 - pytest
 - pytorch
-- torchvision=0.2
+- torchvision
 - gdown
