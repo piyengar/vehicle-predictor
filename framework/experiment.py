@@ -257,10 +257,10 @@ class BaseExperiment(ABC):
         
         with open(eval_results_file_path, mode="w") as writer:
             writer.write(",".join(target_names))
-            writer.write(accuracy_val)
-            writer.write(precision_val)
-            writer.write(f1_val)
-            writer.write(recall_val)
+            writer.write(f'{accuracy_val.item():.4f}')
+            writer.write(f'{precision_val.item():.4f}')
+            writer.write(f'{f1_val.item():.4f}')
+            writer.write(f'{recall_val.item():.4f}')
         with open(cm_results_file_path, mode="wb") as writer:
             cm = ConfusionMatrixDisplay(
                 cm, display_labels=target_names
