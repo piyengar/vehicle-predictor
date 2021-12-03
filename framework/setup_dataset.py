@@ -12,20 +12,20 @@ def ensure_folder(path: str):
     else:
         raise NotADirectoryError(path)
 
-def setup_dataset(dataset: Datasets, dataset_src_root:str= 'dataset_source', dest_dir:str = 'dataset'):
+def setup_dataset(dataset: Datasets, dataset_src_root:str= 'dataset_source', dest_dir:str = 'dataset', password: str = None):
     if dataset == Datasets.COMP_CARS:
         os.makedirs(os.path.join(dest_dir), exist_ok=True)
         archive_path = os.path.join(dataset_src_root, 'CompCars', 'sv_data.zip')
         temp_file = os.path.join(dest_dir, 'cc_combined.zip')
         subprocess.run(['zip', '-F', archive_path,  '-b', dest_dir, '--out', temp_file])
-        PW = os.environ.get('VP_COMP_CARS_PASS', 'dummy_pass')
-        subprocess.run(['unzip', '-P', PW, '-d', os.path.join(dest_dir, 'CompCars'), temp_file])
+        password = password or os.environ.get('VP_COMP_CARS_PASS', 'dummy_pass')
+        subprocess.run(['unzip', '-P', password, '-d', os.path.join(dest_dir, 'CompCars'), temp_file])
         os.remove(temp_file)
     elif dataset == Datasets.VEHICLE_ID:
         os.makedirs(os.path.join(dest_dir), exist_ok=True)
         archive_path = os.path.join(dataset_src_root, 'VehicleID_V1.0.zip')
-        PW = os.environ.get('VP_VEHICLE_ID_PASS', 'dummy_pass')
-        subprocess.run(['unzip', '-P', PW, '-d', dest_dir, archive_path])
+        password = password or os.environ.get('VP_VEHICLE_ID_PASS', 'dummy_pass')
+        subprocess.run(['unzip', '-P', password, '-d', dest_dir, archive_path])
         os.rename(os.path.join(dest_dir, "VehicleID_V1.0"), os.path.join(dest_dir, "VehicleID"))
     elif dataset == Datasets.VERI:
         os.makedirs(os.path.join(dest_dir), exist_ok=True)

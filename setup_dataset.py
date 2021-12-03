@@ -81,6 +81,15 @@ if __name__ == "__main__":
         default="./dataset/",
         type=ensure_folder
     )
+    
+    setup_parser.add_argument(
+        "--password",
+        "-p",
+        help="Password for extracting dataset. Used for COMP_CARS and VEHICLE_ID",
+        default="",
+        type=str,
+    )
+    
 
     args = parser.parse_args()
     # print(args)
@@ -89,4 +98,4 @@ if __name__ == "__main__":
         download_dataset(args.dataset_name, args.source, args.archive_folder)
     # extract the archive
     elif args.command == args.command == COMMAND_SETUP:
-        setup_dataset(args.dataset_name, args.archive_folder, args.dataset_dir)
+        setup_dataset(args.dataset_name, args.archive_folder, args.dataset_dir, password=args.password)
