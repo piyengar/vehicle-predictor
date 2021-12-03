@@ -18,6 +18,7 @@ from torchmetrics.functional import (accuracy, confusion_matrix, f1, precision,
                                      recall)
 
 from framework.datamodule import BaseDataModule
+from sklearn.metrics import ConfusionMatrixDisplay
 
 from .datasets import Datasets
 from .prediction_writer import PredictionWriter
@@ -151,6 +152,11 @@ class BaseExperiment(ABC):
     
     @abstractmethod
     def get_target_names(self) -> List[str]:
+        """Returns a list of class labels
+
+        Returns:
+            List[str]: List of class label strings
+        """
         pass
     
     def get_prediction_root(self) -> str:
@@ -245,7 +251,7 @@ class BaseExperiment(ABC):
         
         pred_dir, pred_file = os.path.split(prediction_file_path)
         eval_results_file_name = os.path.splitext(pred_file)[0]+f'_eval.txt'
-        cm_results_file_name = os.path.splitext(pred_file)[0]+f'_cm.npy'
+        cm_results_file_name = os.path.splitext(pred_file)[0]+f'_cm.png'
         eval_results_file_path = os.path.join(pred_dir, eval_results_file_name)
         cm_results_file_path = os.path.join(pred_dir, cm_results_file_name)
         
@@ -256,8 +262,12 @@ class BaseExperiment(ABC):
             writer.write(f1_val)
             writer.write(recall_val)
         with open(cm_results_file_path, mode="wb") as writer:
-            np.save(writer, cm.numpy())
-        # plt.savefig())
+            cm = ConfusionMatrixDisplay(
+                cm, display_labels=target_names
+            )
+            fig = cm.plot(cmap=plt.cm.Blues, values_format=".2f", xticks_rotation='vertical').figure_
+            fig.savefig(writer)
+            # np.save(writer, cm.numpy())
 
         return accuracy_val, precision_val, f1_val, recall_val, cm
 
@@ -298,5 +308,7 @@ class BaseExperiment(ABC):
         parser.add_argument("--max_epochs", type=int, default=10, help="The max number of epochs to train"),
         parser.add_argument("--model_checkpoint_path", type=str, default=None, help='The model checkpoint file (.ckpt) to use during evaluation'),
         parser.add_argument("--prediction_file_path", type=str, default=None, help='The path were the predictions will be stored in. Should be a full file path.'),
+        parser.add_argument("--prediction_root", type=str, default='predictions', help='The root folder where the predictions will be stored. This will only be used to generate a predictions file path if the --prediction_file_path arg is not specified'),
+        parser.add_argument("--checkpoint_root", type=str, default='checkpoints', help='The root folder where the training logs and model checkpoints will be stored under'),
         return parser
     
