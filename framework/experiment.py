@@ -261,14 +261,15 @@ class BaseExperiment(ABC):
             writer.write(f'{precision_val.item():.4f}')
             writer.write(f'{f1_val.item():.4f}')
             writer.write(f'{recall_val.item():.4f}')
+            print('Saved metrics to ', eval_results_file_path)
         with open(cm_results_file_path, mode="wb") as writer:
-            cm = ConfusionMatrixDisplay(
+            cmd = ConfusionMatrixDisplay(
                 cm, display_labels=target_names
             )
-            fig = cm.plot(cmap=plt.cm.Blues, values_format=".2f", xticks_rotation='vertical').figure_
+            fig = cmd.plot(cmap=plt.cm.Blues, values_format=".2f", xticks_rotation='vertical').figure_
             fig.savefig(writer)
             # np.save(writer, cm.numpy())
-
+            print("Saved confusion matrix to ", cm_results_file_path)
         return accuracy_val, precision_val, f1_val, recall_val, cm
 
     @staticmethod
