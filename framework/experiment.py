@@ -257,10 +257,10 @@ class BaseExperiment(ABC):
         
         with open(eval_results_file_path, mode="w") as writer:
             writer.write(",".join(target_names))
-            writer.write(f'{accuracy_val.item():.4f}')
-            writer.write(f'{precision_val.item():.4f}')
-            writer.write(f'{f1_val.item():.4f}')
-            writer.write(f'{recall_val.item():.4f}')
+            writer.write(f'\nAccuracy: {accuracy_val.item():.4f}')
+            writer.write(f'\nPrecision: {precision_val.item():.4f}')
+            writer.write(f'\nRecall: {recall_val.item():.4f}')
+            writer.write(f'\nF1: {f1_val.item():.4f}')
             print('Saved metrics to ', eval_results_file_path)
         with open(cm_results_file_path, mode="wb") as writer:
             cmd = ConfusionMatrixDisplay(
