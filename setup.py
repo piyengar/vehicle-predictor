@@ -42,6 +42,8 @@ setup(
         "ipywidgets",
         "torchmetrics",
         "efficientnet_pytorch",
-        "gdown~=4.2.0"
+        "gdown~=4.2.0",
+        "scipy",
+        "sklearn"
     ]
 )
