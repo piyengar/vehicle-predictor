@@ -256,7 +256,7 @@ class BaseExperiment(ABC):
         cm_results_file_path = os.path.join(pred_dir, cm_results_file_name)
         
         with open(eval_results_file_path, mode="w") as writer:
-            writer.write(target_names)
+            writer.write(",".join(target_names))
             writer.write(accuracy_val)
             writer.write(precision_val)
             writer.write(f1_val)
