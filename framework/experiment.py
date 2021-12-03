@@ -193,10 +193,10 @@ class BaseExperiment(ABC):
         model_checkpoint_path = self.model_checkpoint_path
         test_dataset = self.test_dataset
         batch_size = self.batch_size
-        self.predictions_file_path = self.predictions_file_path or self.get_prediction_path(test_dataset, model_checkpoint_path)
+        self.prediction_file_path = self.prediction_file_path or self.get_prediction_path(test_dataset, model_checkpoint_path)
         prediction_writer = PredictionWriter(
             write_interval="batch",
-            out_file_name=self.predictions_file_path,
+            out_file_name=self.prediction_file_path,
         )
         # datamodule
         dm = self.get_eval_data_module()
@@ -208,25 +208,25 @@ class BaseExperiment(ABC):
         dl = DataLoader(dm.test_dataset, batch_size=batch_size)
         trainer.predict(model, dataloaders=dl)
         print('Predictions stored at : ', self.prediction_file_path)
-        return self.predictions_file_path
+        return self.prediction_file_path
     
     def evaluate_predictions(
         self,
     ):
-        predictions_file_path = self.predictions_file_path
+        prediction_file_path = self.prediction_file_path
         test_dataset = self.test_dataset
 
         # load dataset with ground truth
         dm_gt = self.get_eval_data_module()
         dm_gt.setup("test")
         # gt will be indexed based on the dataset
-        print(f"Evaluating {test_dataset.name} using {predictions_file_path}")
+        print(f"Evaluating {test_dataset.name} using {prediction_file_path}")
         
         targets = dm_gt.get_test_targets()
         
         gt = np.array(targets)
         gt = torch.from_numpy(gt)
-        predictions = np.loadtxt(predictions_file_path, dtype=int)
+        predictions = np.loadtxt(prediction_file_path, dtype=int)
         predictions = torch.from_numpy(predictions)
         target_names = self.get_target_names()
         avg_met = "weighted"
@@ -243,7 +243,7 @@ class BaseExperiment(ABC):
         # confusion matrix
         cm = confusion_matrix(predictions, gt, num_classes, "true")
         
-        pred_dir, pred_file = os.path.split(predictions_file_path)
+        pred_dir, pred_file = os.path.split(prediction_file_path)
         eval_results_file_name = os.path.splitext(pred_file)[0]+f'_eval.txt'
         cm_results_file_name = os.path.splitext(pred_file)[0]+f'_cm.npy'
         eval_results_file_path = os.path.join(pred_dir, eval_results_file_name)
