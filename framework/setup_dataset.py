@@ -18,12 +18,14 @@ def setup_dataset(dataset: Datasets, dataset_src_root:str= 'dataset_source', des
         archive_path = os.path.join(dataset_src_root, 'CompCars', 'sv_data.zip')
         temp_file = os.path.join(dest_dir, 'cc_combined.zip')
         subprocess.run(['zip', '-F', archive_path,  '-b', dest_dir, '--out', temp_file])
-        subprocess.run(['unzip', '-P', 'd89551fd190e38', '-d', os.path.join(dest_dir, 'CompCars'), temp_file])
+        PW = os.environ.get('VP_COMP_CARS_PASS')
+        subprocess.run(['unzip', '-P', PW, '-d', os.path.join(dest_dir, 'CompCars'), temp_file])
         os.remove(temp_file)
     elif dataset == Datasets.VEHICLE_ID:
         os.makedirs(os.path.join(dest_dir), exist_ok=True)
         archive_path = os.path.join(dataset_src_root, 'VehicleID_V1.0.zip')
-        subprocess.run(['unzip', '-P', 'CVPR16_IDM@PKU', '-d', dest_dir, archive_path])
+        PW = os.environ.get('VP_VEHICLE_ID_PASS')
+        subprocess.run(['unzip', '-P', PW, '-d', dest_dir, archive_path])
         os.rename(os.path.join(dest_dir, "VehicleID_V1.0"), os.path.join(dest_dir, "VehicleID"))
     elif dataset == Datasets.VERI:
         os.makedirs(os.path.join(dest_dir), exist_ok=True)
