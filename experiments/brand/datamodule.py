@@ -12,9 +12,9 @@ from framework.datamodule import BaseDataModule
 from framework.datasets import Datasets
 
 from .dataset import (
-    # BoxCars116kDataset,
+    BoxCars116kDataset,
     Cars196Dataset,
-    # CompCarsDataset,
+    CompCarsDataset,
     VehicleIDDataset,
     # VeriDataset,
     # VRICDataset,
@@ -48,20 +48,20 @@ class BrandDataModule(BaseDataModule):
                 stage=stage,
                 allowed_brand_list=allowed_brand_list,
             )
-        # elif dataset_name == Datasets.BOXCARS116K:
-        #     return BoxCars116kDataset(
-        #         os.path.join(self.data_dir, "BoxCars116k"),
-        #         data_transform=self.transform,
-        #         with_predictions=self.with_predictions,
-        #     )
-        # elif dataset_name == Datasets.COMP_CARS:
-        #     return CompCarsDataset(
-        #         os.path.join(self.data_dir, "CompCars", "sv_data"),
-        #         data_transform=self.transform,
-        #         stage=stage,
-        #         prediction_file=self.prediction_file,
-        #         allowed_brand_list=allowed_brand_list,
-        #     )
+        elif dataset == Datasets.BOXCARS116K:
+            return BoxCars116kDataset(
+                os.path.join(self.data_dir, "BoxCars116k"),
+                data_transform=self.transform,
+                stage=stage,
+                allowed_brand_list=allowed_brand_list,
+            )
+        elif dataset == Datasets.COMP_CARS:
+            return CompCarsDataset(
+                os.path.join(self.data_dir, "CompCars", "sv_data"),
+                data_transform=self.transform,
+                stage=stage,
+                allowed_brand_list=allowed_brand_list,
+            )
         # elif dataset_name == Datasets.VERI:
         #     return VeriDataset(
         #         os.path.join(self.data_dir, "VeRi_with_plate"),
@@ -95,9 +95,7 @@ class BrandDataModule(BaseDataModule):
         
     def get_test_targets(self):
         self.setup('test')
-        if self.dataset_type == Datasets.VEHICLE_ID:
-            return self.test_dataset.brands
-        elif self.dataset_type == Datasets.CARS196:
+        if self.dataset_type in [Datasets.VEHICLE_ID, Datasets.CARS196, Datasets.COMP_CARS, Datasets.BOXCARS116K]:
             return self.test_dataset.brands
         else:
             raise ValueError("Dataset not supported")
@@ -112,13 +110,14 @@ class BrandDataModule(BaseDataModule):
         return self._get_dataset_stats(self.test_dataset)
     
     def _get_dataset_stats(self, dataset: BrandDataset):
-        if self.dataset_type in [Datasets.VEHICLE_ID, Datasets.CARS196]:
-            counts = dataset.get_brand_counts()
-            counts = sorted(counts, key= lambda ct: ct[1], reverse=True)
-            data = {}
-            for ct in counts:
-                data[ct[1]] = int(ct[2])
-            return data
-        else:
+        if self.dataset_type not in [
+            Datasets.VEHICLE_ID,
+            Datasets.CARS196,
+            Datasets.BOXCARS116K,
+            Datasets.COMP_CARS,
+        ]:
             raise ValueError("Dataset not supported")
+        counts = dataset.get_brand_counts()
+        counts = sorted(counts, key= lambda ct: ct[1], reverse=True)
+        return {ct[1]: int(ct[2]) for ct in counts}
             
