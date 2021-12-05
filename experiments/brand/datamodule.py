@@ -27,7 +27,7 @@ class BrandDataModule(BaseDataModule):
         dataset: Datasets = Datasets.VEHICLE_ID,
         stage: Optional[str] = None,
     ):
-        allowed_brand_list = list(map(lambda x: Brand[x], self.allowed_target_names)) if self.allowed_target_names else list(Brand)
+        allowed_brand_list = list(map(lambda x: Brand[x], self.allowed_target_names))
         if dataset == Datasets.VEHICLE_ID:
             return VehicleIDDataset(
                 os.path.join(self.data_dir, "VehicleID"),
