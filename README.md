@@ -73,7 +73,7 @@ Not all datasets have all the attributes. See below table for details
 ## Cloudlab 
 The experiments can be run on cloudlab using the profile `carzam_training_v1`. This profile has been parameterized with node type options that have GPU access and can be set when starting the experiment. This creates a Ubuntu 20.04 node with CUDA and conda/pytorch installed. 
 
-The Datasets have been saved as a Image-backed dataset and will be mounted on the path `/mydata/datasets/`.
+The Datasets have been saved as a Image-backed dataset `carzam-vehicle-dataset` and will be mounted on the path `/mydata/datasets/` by the profile.
 
 ### Notes for setting up the profile
 - Used the default Ubuntu-20 image to create a profile. 
