@@ -115,6 +115,13 @@ class Brand(IntEnum):
     VENUCIA= auto()
     YIQI= auto()
     ZOYTE= auto()
+    LANCIA= auto()
+    SAAB= auto()
+    DACIA= auto()
+    SEAT= auto()
+    LADA= auto()
+    ALFAROMEO= auto()
+    SSANGYONG= auto()
     
     @staticmethod
     def list():
