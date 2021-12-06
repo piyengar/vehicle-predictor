@@ -31,11 +31,6 @@ def run_experiment(args):
         exp.predict_and_persist()
     if(Command.evaluate in args.commands):
         exp.evaluate_predictions()
-    # prediction_path = exp.predict_and_persist()
-    # exp.evaluate_predictions(prediction_path)
-    
-    
-
 
 if __name__=="__main__":
     
