@@ -102,12 +102,12 @@ class BoxCars116kDataset(BrandDataset):
             if not anno:
                 continue
             brand = anno.split(' ')[0]
-            # brand = self.to_common_brand(brand)
+            brand = self.to_common_brand(brand)
             self.names.extend([inst['path'] for inst in sample['instances']])
             if self.stage in [self.STAGE_TEST, self.STAGE_TRAIN]:
                 dataset_brand = brand
                 self.brands.extend([dataset_brand] * len(sample['instances']))
-        print(set(self.brands))
+        # print(set(self.brands))
         self.names, self.brands = self.filter_by_brands(allowed_brand_list)
         if allowed_brand_list != None:
             self._remap_brands(allowed_brand_list)
