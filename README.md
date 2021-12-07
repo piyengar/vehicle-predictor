@@ -7,7 +7,7 @@ The following folders exist in the project
   - color - code for training color based models
   - vtype - code for training type based models
   - brand - code for training brand based models
-- test - pytest test cases should be stored here
+<!-- - test - pytest test cases should be stored here -->
 - Experiment_framework.ipynb - A notebook that shows examples on how to use the experiment framework
 
 ## Getting started
