@@ -57,6 +57,9 @@ class BrandExperiment(BaseExperiment):
     
     def get_eval_trainer(self, predict_callback: PredictionWriter) -> pl.Trainer:
         return pl.Trainer(
-            gpus=self.gpus, progress_bar_refresh_rate=20, callbacks=[predict_callback]
+            gpus=self.gpus, 
+            progress_bar_refresh_rate=20, 
+            callbacks=[predict_callback],
+            default_root_dir=os.path.join(self.checkpoints_root, self.get_name()),
         )
         
