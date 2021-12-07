@@ -69,24 +69,3 @@ Not all datasets have all the attributes. See below table for details
 | BoxCars116k     | N   |    Y|    Y|
 | VehicleID       | Y   |    N|    Y|
 | VRIC            | N   |    N|    N|
-
-## Cloudlab 
-The experiments can be run on cloudlab using the profile `carzam_training_v1`. This profile has been parameterized with node type options that have GPU access and can be set when starting the experiment. This creates a Ubuntu 20.04 node with CUDA and conda/pytorch installed. 
-
-The Datasets have been saved as a Image-backed dataset `carzam-vehicle-dataset` and will be mounted on the path `/mydata/datasets/` by the profile.
-
-### Notes for setting up the profile
-- Used the default Ubuntu-20 image to create a profile. 
-- Disable GUI. This turns off gnome
-    ```
-    systemctl set-default multi-user.target
-    ```
-- Install the nvidia driver
-    ```
-    apt install nvidia-driver-470
-    ```
-- Install conda. Installed at `/opt/miniconda`
-    ```
-    wget -O "Miniconda-installer.sh" "https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh"
-    bash Miniconda-installer.sh -p /opt/miniconda
-    ```
