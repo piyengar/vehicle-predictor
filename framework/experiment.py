@@ -4,7 +4,7 @@ import time
 from abc import ABC, abstractmethod
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 from enum import Enum, auto
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -70,6 +70,31 @@ class BaseExperiment(ABC):
         checkpoints_root: str = 'checkpoints',
         **kwargs,
     ) -> None:
+        """ The base abstract experiment class that can be extended in experiments.
+
+        Args:
+            class_names (List[str]): The list of classes that should be used in the experiments, can be None
+            model_arch (str, optional): The model architechture to use. Refer to `BaseModel.validArchs` for valid options. If the `BaseModel` is also extended in the experiment to add new architectures then that can be used as well. Defaults to "resnet18".
+            learning_rate (float, optional): The learning rate. Defaults to 0.001.
+            lr_step (int, optional): The number of epochs after which the learning rate is reduced. Defaults to 1.
+            lr_step_factor (float, optional): The factor to reduce the learning rate by. Defaults to 0.9.
+            data_dir (str, optional): The root directory where the datasets exist. Defaults to "dataset".
+            batch_size (int, optional): The batch size for training the model. Defaults to 32.
+            img_size (int, optional): The height and width to transform the images to before passing it to the model. Defaults to 224.
+            train_split (float, optional): The fraction of sample to use for training the model. the rest will be used for validation. Defaults to 0.7.
+            num_workers (int, optional): The number of workers for the dataloader. Defaults to 1.
+            train_dataset (Datasets, optional): The dataset to train the model on. Defaults to Datasets.VEHICLE_ID.
+            test_dataset (Datasets, optional): The dataset to test/evaluate the model on. Defaults to Datasets.VEHICLE_ID.
+            early_stop_patience (int, optional): The number of epochs to wait when validation accuracy stops increasing. Defaults to 3.
+            early_stop_delta (int, optional): The minimum val accuracy difference to track for early stopping. Defaults to 0.001.
+            gpus (Optional[int], optional): The number of gpus to use, use -1 to use all available gpus, None for cpu. Defaults to None.
+            is_dev_run (bool, optional): Run training in dev mode. This only runs a minimum required epochs to test code executes correctly. Defaults to False.
+            max_epochs (int, optional): The max number of epochs to train the model. Defaults to 10.
+            model_checkpoint_path (str, optional): The location of the model checkpoint file to run predictions on. Defaults to None.
+            prediction_file_path (str, optional): The location to store the predictions or read prediction from to calculate metrics. Defaults to None.
+            prediction_root (str, optional): The default location where the predictions should be stored. Defaults to 'predictions'.
+            checkpoints_root (str, optional): The root folder where the training logs and checkpoints are stored. Defaults to 'checkpoints'.
+        """
         self.class_names = class_names
         self.model_arch = model_arch
         self.learning_rate = learning_rate
@@ -95,13 +120,28 @@ class BaseExperiment(ABC):
     
     @abstractmethod
     def get_eval_data_module(self) -> BaseDataModule:
+        """Returns a datamodule that loads the train dataset
+
+        Returns:
+            BaseDataModule: An instance of the BaseDataModule class. 
+        """
         pass
     
     @abstractmethod
     def get_train_data_module(self) -> BaseDataModule:
+        """Returns a datamodule that loads the test dataset
+
+        Returns:
+            BaseDataModule: An instance of the BaseDataModule class.
+        """
         pass
     
     def train(self) -> str:
+        """ Runs the training script based on the configuration params provided to the experiment class
+
+        Returns:
+            str: Returns the best model checkpoint path
+        """
         # init model
         model = self.get_model()
         # init datamodule
@@ -138,6 +178,14 @@ class BaseExperiment(ABC):
     
     @abstractmethod
     def get_eval_trainer(self, predict_callback: PredictionWriter) -> pl.Trainer:
+        """Get the trainer that is used for evaluating on the test dataset
+
+        Args:
+            predict_callback (PredictionWriter): The prediction writer class configured for the prediction location
+
+        Returns:
+            pl.Trainer: The trainer instance for running the evaluations
+        """
         # return pl.Trainer(
         #     gpus=gpus, progress_bar_refresh_rate=20, callbacks=[predict_callback]
         # )
@@ -145,6 +193,11 @@ class BaseExperiment(ABC):
     
     @abstractmethod
     def get_model(self) -> pl.LightningModule:
+        """The model configuration happens here in this method. Has to be implemented in the extended experiment class
+
+        Returns:
+            pl.LightningModule: The module holding the mdel
+        """
         pass
     
     def get_model_from_checkpoint(self, model_checkpoint_file: str) -> pl.LightningModule:
@@ -166,6 +219,11 @@ class BaseExperiment(ABC):
         return self.checkpoints_root
     
     def tune_learning_rate(self) -> float:
+        """Run the learning rate finder algorithm
+
+        Returns:
+            float: The suggested learning rate
+        """
         trainer = pl.Trainer(
             gpus=self.gpus, 
             max_epochs=20, progress_bar_refresh_rate=20, auto_lr_find=True
@@ -173,11 +231,23 @@ class BaseExperiment(ABC):
         lr_finder = trainer.tune(self.get_model(),datamodule=self.get_train_data_module())['lr_find']
         fig = lr_finder.plot(suggest=True)
         fig.show()
+        return lr_finder.suggestion()[0]
     
     def get_train_stats(self) -> Dict[str, int]:
+        """Get the dataset statistics of classes in the train set
+
+        Returns:
+            Dict[str, int]: A dict with class names as keys and number of samples as the value
+        """
         return self.get_train_data_module().get_train_stats()
         
     def get_test_stats(self) -> Dict[str, int]:
+        """Get the dataset statistics of classes in the test set
+
+
+        Returns:
+            Dict[str, int]: A dict with class names as keys and number of samples as the value
+        """
         return self.get_eval_data_module().get_test_stats()
         
     
@@ -195,7 +265,12 @@ class BaseExperiment(ABC):
         return os.path.join(self.get_prediction_root(), self.get_name(), f'{test_dataset.name}_{prediction_file_name}')
     
     def predict_and_persist(self,
-    ):
+    ) -> str: 
+        """Run predictions on the specified test_dataset and store the results
+
+        Returns:
+            str: The location where the predictions are stored
+        """
         model_checkpoint_path = self.model_checkpoint_path
         test_dataset = self.test_dataset
         batch_size = self.batch_size
@@ -218,7 +293,12 @@ class BaseExperiment(ABC):
     
     def evaluate_predictions(
         self,
-    ):
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Evaluate the accuracy, precision, recall, f1 and confusion matrix for the provided prediction files
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]: The accuracy, precision, F1, and confusion matrix
+        """
         prediction_file_path = self.prediction_file_path
         test_dataset = self.test_dataset
 
@@ -273,7 +353,15 @@ class BaseExperiment(ABC):
         return accuracy_val, precision_val, f1_val, recall_val, cm
 
     @staticmethod
-    def add_parser_args(parent_parser: ArgumentParser):
+    def add_parser_args(parent_parser: ArgumentParser) -> ArgumentParser:
+        """Adds parser arg configuration for the experiment
+
+        Args:
+            parent_parser (ArgumentParser): The parent parser to which experiment args will be added
+
+        Returns:
+            ArgumentParser: The child arg parser with added arguments
+        """
         parser = ArgumentParser(parents=[parent_parser], add_help=False,
                                 formatter_class=ArgumentDefaultsHelpFormatter,
                                 )
